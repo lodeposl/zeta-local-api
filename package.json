@@ -1,0 +1,27 @@
+{
+  "name": "zeta-local-api",
+  "version": "1.0.0",
+  "description": "local api backend for ZETA.CA",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lodeposl/zeta-local-api.git"
+  },
+  "author": "joshuacher16@gmail.com",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/lodeposl/zeta-local-api/issues"
+  },
+  "homepage": "https://github.com/lodeposl/zeta-local-api#readme",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.1",
+    "mongoose": "^7.4.3"
+  }
+}
