@@ -7,6 +7,7 @@ const controller = {
     login:async ({userName, password},params)=>{
         let error
         let token
+        let payload
         try{
             if(!userName) throw "username-required"
             if(!password) throw "password-required"
@@ -16,9 +17,10 @@ const controller = {
             if (!bcrypt.compareSync(password, user.password)) throw "wrong-password"
             user.lastLogin = new Date()
             await user.save()
-            const payload = {
+            payload = {
                 name:user.name,
-                role:user.role
+                role:user.role,
+                expires: new Date().setHours(new Date().getHours()+4)
             }
             token = jwt.sign(payload, process.env.SECRET, {expiresIn:"4h"})
         }catch(err){
@@ -28,6 +30,8 @@ const controller = {
         return {
             error,
             token,
+            payload
+
         }
     },
 }
