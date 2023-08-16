@@ -8,9 +8,12 @@ const controller = {
         if(!userName) throw "username-required"
         if(!password) throw "password-required"
 
-        const user = await User.findOne({name:userName}).lean()
+        const user = await User.findOne({name:userName})
         if (!user) throw "nonexistant-user"
         if (!bcrypt.compareSync(password, user.password)) throw "wrong-password"
+
+        user.lastLogin = new Date()
+        await user.save()
         const payload = {
             name:user.name,
             role:user.role
