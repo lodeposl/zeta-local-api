@@ -12,6 +12,7 @@ async function init (){
     await initMongo()
     const app = express()
     app.use(cors())
+    app.use(express.static("public"))
     app.use(bodyParser.json())
     app.use("/user", userRouter)
     app.use("/products", productsRouter)
