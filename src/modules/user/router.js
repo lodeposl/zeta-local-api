@@ -5,5 +5,9 @@ import { callController, isAuth, checkRole } from "../../utils/express.js";
 const userRouter = Router()
 
 userRouter.post("/login", callController(controller.login))
+userRouter.post("/passwordChange", isAuth, callController(controller.passwordChange))
+userRouter.post("/createUser", isAuth, checkRole(["admin"]), callController(controller.createUser))
+userRouter.post("/permissions", isAuth,checkRole(["admin"]), callController(controller.permissions))
+
 
 export default userRouter

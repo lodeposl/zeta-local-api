@@ -15,7 +15,8 @@ const userSchema = new mongoose.Schema({
         required:true,
         default:"user"
     },
-    lastLogin:Date
+    lastLogin:Date,
+    permissions:[String]
 })
 
 export const User = mongoose.model("user",userSchema)

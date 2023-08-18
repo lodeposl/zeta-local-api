@@ -30,7 +30,9 @@ export function isAuth(req,res,next){
 export function checkRole(roles){
     return (req, res, next)=>{
         if (roles.indexOf(req.body.auth.role)<0){
-            res.status(400).json("role-unauthorized")
+            res.status(200).json({
+                error:"role-unauthorized"
+            })
         }else{
             next()
         }
