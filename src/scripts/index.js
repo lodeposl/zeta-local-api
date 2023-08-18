@@ -1,5 +1,4 @@
 const args = process.argv
-console.log("args", args)
 if (args.length<3){
     console.error("no script specified")
 }

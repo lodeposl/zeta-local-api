@@ -20,7 +20,7 @@ export function isAuth(req,res,next){
         error = err.message
     }
     if (error){
-        res.status(400).json(error)
+        res.status(200).json({error})
     }else{
         req.body.auth = auth
         next()

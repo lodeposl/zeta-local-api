@@ -34,7 +34,6 @@ const controller = {
 
 
             const url = `http://${process.env.FRONT_IP}/#/products/${params.code}`
-            console.log("url",url)
             const filePath = `./public/${params.code}.png`
              image = `${params.code}.png`
             let found = false

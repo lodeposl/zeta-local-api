@@ -5,6 +5,6 @@ import { callController, isAuth, checkRole } from "../../utils/express.js";
 const productsRouter = Router()
 
 productsRouter.get("/:code", callController(controller.queryCode))
-productsRouter.get(isAuth, checkRole(["admin"]),"/qr/:code", callController(controller.generateQR))
+productsRouter.get("/qr/:code", isAuth, callController(controller.generateQR))
 
 export default productsRouter
