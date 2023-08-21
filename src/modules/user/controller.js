@@ -21,6 +21,7 @@ const controller = {
             payload = {
                 name:user.name,
                 role:user.role,
+                permissions:user.permissions,
                 expires: new Date().setHours(new Date().getHours()+4)
             }
             token = jwt.sign(payload, process.env.SECRET, {expiresIn:"4h"})

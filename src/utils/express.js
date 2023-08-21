@@ -38,3 +38,21 @@ export function checkRole(roles){
         }
     }
 }
+
+export function checkPermissions(permissions){
+    return (req, res, next)=>{
+        let hasAll = true
+        for (const permReq of permissions){
+            if(req.body.auth.permissions.indexOf(permReq)<0){
+                hasAll = false
+            }
+        }
+        if (!hasAll){
+            res.status(200).json({
+                error:"not-enough-permissions"
+            })
+        }else{
+            next()
+        }
+    }
+}
