@@ -1,8 +1,23 @@
 import qrcode from "qrcode"
 import sql from "../../utils/mssql.js"
 import fs from "fs"
-import { PRODUCT_BY_CODE } from "./queries.js"
+import { PRODUCT_BY_CODE, FIRM_AND_COUNT } from "./queries.js"
 const controller = {
+    queryMarcas: async(body, params)=>{
+        let error
+        let marcas = []
+        try{
+            const result = await sql.query(FIRM_AND_COUNT())
+            
+            marcas = result.recordset
+        }catch(err){
+            error = err
+        }
+        return {
+            error,
+            marcas
+        }
+    },
     queryCode: async (body, params)=>{
         let error
         let product = {}
