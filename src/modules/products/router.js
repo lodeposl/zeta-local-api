@@ -5,6 +5,6 @@ import { callController, isAuth, checkRole, checkPermissions } from "../../utils
 const productsRouter = Router()
 
 productsRouter.get("/:code", callController(controller.queryCode))
-productsRouter.get("/qr/:code", isAuth, checkPermissions(["imprimir-etiquetas"]), callController(controller.generateQR))
+productsRouter.get("/qr/:code", isAuth,  callController(controller.generateQR))
 
 export default productsRouter
