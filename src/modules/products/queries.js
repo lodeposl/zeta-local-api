@@ -5,7 +5,8 @@ export const PRODUCT_BY_CODE = function(ItemCode){
         ItemName,
         onHand,
         Price,
-        OMRC.FirmName
+        OMRC.FirmName,
+        OMRC.FirmCode
     from 
         OITM 
     join 
