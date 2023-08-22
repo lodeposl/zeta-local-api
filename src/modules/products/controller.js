@@ -1,7 +1,7 @@
 import qrcode from "qrcode"
 import sql from "../../utils/mssql.js"
 import fs from "fs"
-import { PRODUCT_BY_CODE, FIRM_AND_COUNT } from "./queries.js"
+import { PRODUCT_BY_CODE, FIRM_AND_COUNT, PRODUCTS_BY_MARCA } from "./queries.js"
 const controller = {
     queryMarcas: async(body, params)=>{
         let error
@@ -33,6 +33,24 @@ const controller = {
         return {
             error,
             product
+        }
+
+    },
+    productsByMarca: async (body, params)=>{
+        let error
+        let products = {}
+        try{
+            if (!params.code) throw  "code-required"
+            const result = await sql.query(PRODUCTS_BY_MARCA(params.code))
+            if (result.recordset.length===0) throw "invalid-code"
+            
+            products = result.recordset
+        }catch(err){
+            error = err
+        }
+        return {
+            error,
+            products
         }
 
     },
