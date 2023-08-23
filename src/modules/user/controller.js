@@ -99,7 +99,6 @@ const controller = {
             const config = await Config.findOne({}).lean()
             
             let permissions = body.permissions.filter((i)=> config.permissions.includes(i))
-            console.log(body.permissions, config.permissions, permissions)
             await User.updateOne({name:body.user}, {$set:{
                 permissions:permissions
             }})

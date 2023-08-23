@@ -4,7 +4,11 @@ import { callController, isAuth, checkRole, checkPermissions } from "../../utils
 
 const productsRouter = Router()
 
-productsRouter.get("/:code", callController(controller.queryCode))
+productsRouter.get("/info/:code", callController(controller.queryCode))
 productsRouter.get("/qr/:code", isAuth,  callController(controller.generateQR))
+productsRouter.get("/marcas", isAuth,  callController(controller.queryMarcas))
+productsRouter.get("/byMarca/:code", isAuth,  callController(controller.productsByMarca))
+
+
 
 export default productsRouter
