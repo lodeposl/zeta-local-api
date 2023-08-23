@@ -16,7 +16,8 @@ export const PRODUCT_BY_CODE = function(ItemCode){
         OMRC
             on OITM.FirmCode = OMRC.FirmCode
     where 
-        PriceList=3 
+        OITM.frozenFor = 'N'
+        and PriceList=3 
         and OITM.ItemCode='${ItemCode}'`
 }
 
@@ -29,6 +30,8 @@ export const FIRM_AND_COUNT = function(ItemCode){
     from OMRC 
     join OITM 
         on OMRC.FirmCode = OITM.FirmCode
+    where
+        OITM.frozenFor = 'N'
     group by
         OMRC.FirmCode,
         OMRC.FirmName 
@@ -52,6 +55,7 @@ export const PRODUCTS_BY_MARCA = function(FirmCode){
         OMRC
             on OITM.FirmCode = OMRC.FirmCode
     where 
-        PriceList=3 
+        OITM.frozenFor = 'N'
+        and PriceList=3 
         and OITM.FirmCode='${FirmCode}'`
 }

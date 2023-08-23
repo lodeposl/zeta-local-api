@@ -24,7 +24,7 @@ const controller = {
                 permissions:user.permissions,
                 expires: new Date().setHours(new Date().getHours()+4)
             }
-            token = jwt.sign(payload, process.env.SECRET, {expiresIn:"4h"})
+            token = jwt.sign(payload, process.env.SECRET, {expiresIn:"24h"})
         }catch(err){
             error = err
         }
