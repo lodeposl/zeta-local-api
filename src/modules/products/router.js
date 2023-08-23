@@ -7,7 +7,7 @@ const productsRouter = Router()
 productsRouter.get("/info/:code", callController(controller.queryCode))
 productsRouter.get("/qr/:code", isAuth,  callController(controller.generateQR))
 productsRouter.get("/marcas", isAuth,  callController(controller.queryMarcas))
-productsRouter.get("/byMarcas/:code", isAuth,  callController(controller.productsByMarca))
+productsRouter.get("/byMarca/:code", isAuth,  callController(controller.productsByMarca))
 
 
 
