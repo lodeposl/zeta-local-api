@@ -67,7 +67,7 @@ const controller = {
             product = result.recordset[0]
 
 
-            const url = `http://${process.env.FRONT_IP}/#/products/${params.code}`
+            const url = `http://${process.env.FRONT_IP}/#/consulta/${params.code}`
             const filePath = `./public/${params.code}.png`
              image = `${params.code}.png`
             let found = false
