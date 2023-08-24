@@ -5,9 +5,9 @@ import { callController, isAuth, checkRole, checkPermissions } from "../../utils
 const productsRouter = Router()
 
 productsRouter.get("/info/:code", callController(controller.queryCode))
-productsRouter.get("/qr/:code", isAuth,  callController(controller.generateQR))
-productsRouter.get("/marcas", isAuth,  callController(controller.queryMarcas))
-productsRouter.get("/byMarca/:code", isAuth,  callController(controller.productsByMarca))
+productsRouter.get("/qr/:code", isAuth, checkPermissions(["imprimir-etiquetas"]), callController(controller.generateQR))
+productsRouter.get("/marcas", isAuth, checkPermissions(["imprimir-etiquetas"]),  callController(controller.queryMarcas))
+productsRouter.get("/byMarca/:code", isAuth, checkPermissions(["imprimir-etiquetas"]), callController(controller.productsByMarca))
 
 
 

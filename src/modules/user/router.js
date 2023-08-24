@@ -8,6 +8,9 @@ userRouter.post("/login", callController(controller.login))
 userRouter.post("/passwordChange", isAuth, callController(controller.passwordChange))
 userRouter.post("/createUser", isAuth, checkRole(["admin"]), callController(controller.createUser))
 userRouter.post("/permissions", isAuth,checkRole(["admin"]), callController(controller.permissions))
+userRouter.get("/", isAuth,checkRole(["admin"]), callController(controller.getUsersList))
+userRouter.get("/permissions", isAuth,checkRole(["admin"]), callController(controller.getPermissions))
+
 
 
 export default userRouter

@@ -59,7 +59,6 @@ const controller = {
         let image
         let product
 
-        
         try{
             if (!params.code) throw "code-required"
             const result = await sql.query(PRODUCT_BY_CODE(params.code))
@@ -77,9 +76,6 @@ const controller = {
                     errorCorrectionLevel:"M"
                 })
             }
-
-
-
             
         }catch(err){
             console.log("err", err)

@@ -102,9 +102,202 @@ const controller = {
             await User.updateOne({name:body.user}, {$set:{
                 permissions:permissions
             }})
+        }catch(err){
+            error = err
+        }
 
+        return {
+            error
+        }
+    },
+    getUsersList: async (body,params)=>{
+        let error
+        let users
+        try{
+            
+            users = await User.aggregate(
+                [
+                    {
+                      $match:
+                        /**
+                         * query: The query in MQL.
+                         */
+                        {
+                          role: {
+                            $ne: "admin",
+                          },
+                        },
+                    },
+                    {
+                      $unwind:
+                        /**
+                         * path: Path to the array field.
+                         * includeArrayIndex: Optional name for index.
+                         * preserveNullAndEmptyArrays: Optional
+                         *   toggle to unwind null and empty values.
+                         */
+                        {
+                          path: "$permissions",
+                          preserveNullAndEmptyArrays:true
+                        },
+                    },
+                    {
+                      $addFields:
+                        /**
+                         * newField: The new field name.
+                         * expression: The new field expression.
+                         */
+                        {
+                          permissionList: {
+                            $reduce: {
+                              input: {
+                                $map: {
+                                  input: {
+                                    $split: ["$permissions", "-"],
+                                  },
+                                  as: "word",
+                                  in: {
+                                    $concat: [
+                                      {
+                                        $toUpper: {
+                                          $substr: ["$$word", 0, 1],
+                                        },
+                                      },
+                                      {
+                                        $substr: [
+                                          "$$word",
+                                          1,
+                                          {
+                                            $strLenCP: "$$word",
+                                          },
+                                        ],
+                                      },
+                                    ],
+                                  },
+                                },
+                              },
+                              initialValue: "",
+                              in: {
+                                $concat: ["$$value", " ", "$$this"],
+                              },
+                            },
+                          },
+                        },
+                    },
+                    {
+                      $group: {
+                        _id: {
+                          name: "$name",
+                          role: "$role",
+                          lastLogin: "$lastLogin",
+                        },
+                        permissionList: {
+                          $addToSet: "$permissionList",
+                        },
+                        permissions: {
+                          $addToSet: "$permissions",
+                        },
+                      },
+                    },
+                    {
+                      $project:
+                        /**
+                         * specifications: The fields to
+                         *   include or exclude.
+                         */
+                        {
+                          _id: 0,
+                          name: "$_id.name",
+                          role: "$_id.role",
+                          lastLogin: {
+                            $dateToString: {
+                              format: "%H:%M %d/%m/%Y",
+                              date: {
+                                $dateFromString: {
+                                  dateString: {
+                                    $dateToString: {
+                                      format:
+                                        "%Y-%m-%dT%H:%M:%S.%L",
+                                      date: "$_id.lastLogin",
+                                    },
+                                  },
+                                  timezone: "+04:00",
+                                },
+                              },
+                            },
+                          },
+                          permissions: 1,
+                          permissionList: 1,
+                          permissionNumber: {
+                            $size: "$permissions",
+                          },
+                        },
+                    },
+                  ])
+
+        }catch(err){
+            error = err
+        }
+        return {
+            error,
+            users
+        }
+    },
+    getPermissions:async (body,params)=>{
+        let error
+        let permissions
+        try{
             
 
+            permissions=await Config.aggregate([
+                {
+                  $unwind:
+                    {
+                      path: "$permissions",
+                    },
+                },
+                {
+                  $project:
+                    {
+                      _id: 0,
+                      permissions: 1,
+                      displayName: {
+                        $reduce: {
+                          input: {
+                            $map: {
+                              input: {
+                                $split: ["$permissions", "-"],
+                              },
+                              as: "word",
+                              in: {
+                                $concat: [
+                                  {
+                                    $toUpper: {
+                                      $substr: ["$$word", 0, 1],
+                                    },
+                                  },
+                                  {
+                                    $substr: [
+                                      "$$word",
+                                      1,
+                                      {
+                                        $strLenCP: "$$word",
+                                      },
+                                    ],
+                                  },
+                                ],
+                              },
+                            },
+                          },
+                          initialValue: "",
+                          in: {
+                            $concat: ["$$value", " ", "$$this"],
+                          },
+                        },
+                      },
+                    },
+                },
+              ])
 
         }catch(err){
             error = err
@@ -112,11 +305,10 @@ const controller = {
 
         return {
             error,
-            token,
-            payload
-
+            permissions
         }
-    }
+    },
+
 }
 
 export default controller
