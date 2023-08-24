@@ -91,6 +91,22 @@ const controller = {
             success
         }
     },
+    deleteUser: async (body,params)=>{
+      let error
+      let success
+      try{
+          if(!body.user) throw "user-required"
+          await User.deleteOne({name:body.user})
+          success = true
+      }catch(err){
+          error = err
+      }
+
+      return {
+          error,
+          success
+      }
+  },
     permissions: async (body,params)=>{
         let error
         try{
