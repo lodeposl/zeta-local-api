@@ -63,7 +63,7 @@ const controller = {
         let error
         let success
         try{
-            if (!body.userName) throw "userName-required"
+            if (!body.userName) throw "username-required"
             if (!body.password) throw "password-required"
             if (!body.role) throw "role-required"
             if (!body.permissions) throw "permissions-required"
