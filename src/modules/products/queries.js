@@ -21,8 +21,8 @@ export const PRODUCT_BY_CODE = function(ItemCode){
         and OITM.ItemCode='${ItemCode}'`
 }
 
-export const FIRM_AND_COUNT = function(ItemCode){
-    return `
+export const FIRM_AND_COUNT = function(includeNoStock){
+    const query = `
     select
         OMRC.FirmCode,
         FirmName,
@@ -32,20 +32,23 @@ export const FIRM_AND_COUNT = function(ItemCode){
         on OMRC.FirmCode = OITM.FirmCode
     where
         OITM.frozenFor = 'N'
+        ${ includeNoStock ? '' : 'and OITM.OnHand > 0'}
     group by
         OMRC.FirmCode,
         OMRC.FirmName 
     order by FirmName asc`
+    return query
 }
 
-export const PRODUCTS_BY_MARCA = function(FirmCode){
-    return `
+export const PRODUCTS_BY_MARCA = function(FirmCode, includeNoStock){
+    const query = `
     select 
         OITM.ItemCode,
         ItemName,
         onHand,
         Price,
-        OMRC.FirmName
+        OMRC.FirmName,
+        OMRC.FirmCode
     from 
         OITM 
     join 
@@ -57,5 +60,8 @@ export const PRODUCTS_BY_MARCA = function(FirmCode){
     where 
         OITM.frozenFor = 'N'
         and PriceList=3 
-        and OITM.FirmCode='${FirmCode}'`
+        and OITM.FirmCode='${FirmCode}'
+        ${includeNoStock ? '' : 'and OITM.onHand > 0'}
+    `
+    return query
 }

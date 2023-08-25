@@ -7,7 +7,7 @@ const controller = {
         let error
         let marcas = []
         try{
-            const result = await sql.query(FIRM_AND_COUNT())
+            const result = await sql.query(FIRM_AND_COUNT((params.includeNoStock === 'true' ? true : false)))
             
             marcas = result.recordset
         }catch(err){
@@ -41,7 +41,7 @@ const controller = {
         let products = {}
         try{
             if (!params.code) throw  "code-required"
-            const result = await sql.query(PRODUCTS_BY_MARCA(params.code))
+            const result = await sql.query(PRODUCTS_BY_MARCA(params.code, (params.includeNoStock === 'true' ? true : false)))
             if (result.recordset.length===0) throw "invalid-code"
             
             products = result.recordset
