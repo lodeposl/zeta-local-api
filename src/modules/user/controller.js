@@ -43,7 +43,6 @@ const controller = {
         try{
             if (!body.user) throw "user-required"
             if (body.auth.name !== "admin" || body.auth.name!=body.user) "cant-modify-user"
-
             if (!body.newPassword) throw "password-required"
 
             const user = await User.findOneAndUpdate({name:body.user}, {$set:{
@@ -139,10 +138,20 @@ const controller = {
                          * query: The query in MQL.
                          */
                         {
-                          role: {
-                            $ne: "admin",
-                          },
-                        },
+                          $or:[
+                            {
+                              role: {
+                                $ne: "admin",
+                              }
+                            },
+                            {
+                              name:{
+                                $eq: body.auth.name
+                              }
+                            }
+                          ]
+                        
+                        }
                     },
                     {
                       $unwind:
@@ -247,8 +256,23 @@ const controller = {
                           permissionNumber: {
                             $size: "$permissions",
                           },
+                          roleDisplay:{
+                            $switch: {
+                                  branches: [
+                                    { case: { $eq: ["$_id.role", "admin"] }, then: "Administrador" },
+                                    { case: { $eq: ["$_id.role", "user"] }, then: "Usuario" },
+                                    // Add more branches for other role values
+                                  ],
+                                  default: "Unknown"
+                                }
+                          }
                         },
                     },
+                    {
+                      $sort:{
+                        role:1
+                      }
+                    }
                   ])
 
         }catch(err){

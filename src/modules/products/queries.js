@@ -35,7 +35,7 @@ export const FIRM_AND_COUNT = function(ItemCode){
     group by
         OMRC.FirmCode,
         OMRC.FirmName 
-    order by amountProducts desc`
+    order by FirmName asc`
 }
 
 export const PRODUCTS_BY_MARCA = function(FirmCode){
