@@ -4,72 +4,44 @@ import fs from "fs"
 import { PRODUCT_BY_CODE, FIRM_AND_COUNT, PRODUCTS_BY_MARCA } from "./queries.js"
 const controller = {
     queryMarcas: async(body, params)=>{
-        let error
-        let marcas = []
-        try{
-            const result = await sql.query(FIRM_AND_COUNT((params.includeNoStock === 'true' ? true : false)))
+
+
+        const result = await sql.query(FIRM_AND_COUNT((params.includeNoStock === 'true' ? true : false)))
             
-            marcas = result.recordset
-        }catch(err){
-            error = err
-        }
-        return {
-            error,
-            marcas
-        }
+        return result.recordset
+
     },
     queryCode: async (body, params)=>{
-        let error
-        let product = {}
-        try{
+
             if (!params.code) throw  "code-required"
             const result = await sql.query(PRODUCT_BY_CODE(params.code))
             if (result.recordset.length===0) throw "invalid-code"
             
-            product = result.recordset[0]
-        }catch(err){
-            error = err
-        }
-        return {
-            error,
-            product
-        }
+            return result.recordset[0]
+
 
     },
     productsByMarca: async (body, params)=>{
-        let error
-        let products = {}
-        try{
+
             if (!params.code) throw  "code-required"
             const result = await sql.query(PRODUCTS_BY_MARCA(params.code, (params.includeNoStock === 'true' ? true : false)))
             if (result.recordset.length===0) throw "invalid-code"
             
-            products = result.recordset
-        }catch(err){
-            error = err
-        }
-        return {
-            error,
-            products
-        }
+        return result.recordset
+
 
     },
     generateQR: async (body, params)=>{
-        let error
-        let image
-        let product
-
-        try{
+ 
             if (!params.code) throw "code-required"
             const result = await sql.query(PRODUCT_BY_CODE(params.code))
             if (result.recordset.length===0) throw "invalid-code"
-            product = result.recordset[0]
+            const product = result.recordset[0]
 
 
             const url = `http://${process.env.FRONT_IP}/#/consulta/${params.code}`
             const filePath = `./public/${params.code}.png`
-             image = `${params.code}.png`
-            let found = false
+            const image = `${params.code}.png`
             if(!fs.existsSync(filePath)){
                 qrcode.toFile(filePath,url, {
                     version:4,
@@ -77,12 +49,7 @@ const controller = {
                 })
             }
             
-        }catch(err){
-            console.log("err", err)
-            error = err
-        }
         return {
-            error,
             product,
             image
         }

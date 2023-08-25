@@ -6,10 +6,6 @@ import {Config} from "../../models/config.js"
 
 const controller = {
     login:async ({userName, password},params)=>{
-        let error
-        let token
-        let payload
-        try{
             if(!userName) throw "username-required"
             if(!password) throw "password-required"
             
@@ -18,29 +14,21 @@ const controller = {
             if (!bcrypt.compareSync(password, user.password)) throw "wrong-password"
             user.lastLogin = new Date()
             await user.save()
-            payload = {
+            const payload = {
                 name:user.name,
                 role:user.role,
                 permissions:user.permissions,
                 expires: new Date().setHours(new Date().getHours()+4)
             }
-            token = jwt.sign(payload, process.env.SECRET, {expiresIn:"24h"})
-        }catch(err){
-            error = err
-        }
+            const token = jwt.sign(payload, process.env.SECRET, {expiresIn:"24h"})
 
         return {
-            error,
             token,
             payload
-
         }
     },
     passwordChange: async(body, params)=>{
-        let error
-        let success
 
-        try{
             if (!body.user) throw "user-required"
             if (body.auth.name !== "admin" || body.auth.name!=body.user) "cant-modify-user"
             if (!body.newPassword) throw "password-required"
@@ -49,20 +37,12 @@ const controller = {
                 password: bcrypt.hashSync(body.newPassword,10),
         
             }})
-            success = true
-        }catch(err){
-            error = err.message ? err.message : err
-        }
+            return true
 
-        return {
-            error,
-            success
-        }
+
     },
     createUser: async(body, params)=>{
-        let error
-        let success
-        try{
+
             if (!body.userName) throw "username-required"
             if (!body.password) throw "password-required"
             if (!body.role) throw "role-required"
@@ -79,36 +59,18 @@ const controller = {
                 permissions:permissions
             }
             await User.create(user)
-            success = true
-        }catch(err){
-
-
-            error = err.message? err.message : err
-        }
-        return {
-            error,
-            success
-        }
+            return true
+ 
     },
     deleteUser: async (body,params)=>{
-      let error
-      let success
-      try{
-          if(!body.user) throw "user-required"
-          await User.deleteOne({name:body.user})
-          success = true
-      }catch(err){
-          error = err
-      }
 
-      return {
-          error,
-          success
-      }
+      if(!body.user) throw "user-required"
+      await User.deleteOne({name:body.user})
+      return true
+
   },
     permissions: async (body,params)=>{
-        let error
-        try{
+
             if(!body.user) throw "user-required"
             if (!body.permissions) throw "permissions-required"
             const config = await Config.findOne({}).lean()
@@ -117,20 +79,12 @@ const controller = {
             await User.updateOne({name:body.user}, {$set:{
                 permissions:permissions
             }})
-        }catch(err){
-            error = err
-        }
-
-        return {
-            error
-        }
+            return true
     },
     getUsersList: async (body,params)=>{
-        let error
-        let users
-        try{
+
             
-            users = await User.aggregate(
+        const users = await User.aggregate(
                 [
                     {
                       $match:
@@ -275,21 +229,12 @@ const controller = {
                     }
                   ])
 
-        }catch(err){
-            error = err
-        }
-        return {
-            error,
-            users
-        }
+        return users
     },
     getPermissions:async (body,params)=>{
-        let error
-        let permissions
-        try{
-            
 
-            permissions=await Config.aggregate([
+
+      const permissions=await Config.aggregate([
                 {
                   $unwind:
                     {
@@ -339,14 +284,7 @@ const controller = {
                 },
               ])
 
-        }catch(err){
-            error = err
-        }
-
-        return {
-            error,
-            permissions
-        }
+      return permissions
     },
 
 }

@@ -1,12 +1,17 @@
 import jwt from "jsonwebtoken"
 export function callController(controller){
-    return (req,res)=>{
-        controller(req.body, req.params).then((result)=>{
-            res.status(200).json(result)
-        }).catch((error)=>{
-            console.log("error",error)
-            res.status(400).json(error)
-        })
+    return async (req,res)=>{
+        let response = {
+
+        }
+        try{
+            const data = await controller(req.body, req.params)
+            response.data = data
+        }catch(err){
+            response.error = err
+        }
+        
+        res.status(200).json(response)
     }
 }
 
