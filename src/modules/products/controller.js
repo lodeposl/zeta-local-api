@@ -73,7 +73,10 @@ const controller = {
             if(!fs.existsSync(filePath)){
                 qrcode.toFile(filePath,url, {
                     version:4,
-                    errorCorrectionLevel:"M"
+                    errorCorrectionLevel:"M",
+                    color:{
+                        light: '#0000'
+                    }
                 })
             }
             
