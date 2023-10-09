@@ -3,8 +3,8 @@ import cron from "cron"
 import pushProducts from "./pushProducts.js"
 import pushBrands from "./pushBrands.js"
 let jobs = [
-    // pushProducts
-    // pushBrands
+    pushProducts,
+    pushBrands
 ]  
 
 let running = {}
