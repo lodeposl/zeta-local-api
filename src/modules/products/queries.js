@@ -65,3 +65,34 @@ export const PRODUCTS_BY_MARCA = function(FirmCode, includeNoStock){
     `
     return query
 }
+
+export const MARCAS = function(){
+    const query = `
+    select
+        FirmCode,
+        FirmName
+    from OMRC 
+    order by FirmName asc`
+    return query;
+}
+
+export const ALL_PRODUCTS = function(){
+    const query = `
+        select 
+            OITM.ItemCode,
+            ItemName,
+            onHand,
+            Price,
+            FirmCode,
+            frozenFor
+        from 
+            OITM 
+        join 
+            ITM1 
+                on OITM.ItemCode = ITM1.ItemCode 
+        where 
+            PriceList=3 
+    `
+    return query
+
+}

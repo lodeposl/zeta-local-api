@@ -1,8 +1,22 @@
 import qrcode from "qrcode"
-import sql from "../../utils/mssql.js"
+import { SAP_DB as sql} from "../../utils/mssql.js"
 import fs from "fs"
-import { PRODUCT_BY_CODE, FIRM_AND_COUNT, PRODUCTS_BY_MARCA } from "./queries.js"
+import { MARCAS, PRODUCT_BY_CODE, FIRM_AND_COUNT, PRODUCTS_BY_MARCA } from "./queries.js"
 const controller = {
+    getAllMarcas: async (body, params)=>{
+        let error
+        let marcas = []
+        try{
+            const result = await sql.query(MARCAS())
+            marcas = result.recordset
+        }catch(err){
+            error = err.message? err.message : err
+        }
+        return {
+            error,
+            marcas
+        }
+    },
     queryMarcas: async(body, params)=>{
         let error
         let marcas = []
