@@ -1,8 +1,6 @@
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 
-import { User } from "../../models/users.js"
-import {Config} from "../../models/config.js"
 
 import sqlite3 from "sqlite3"
 const sqlite = new sqlite3.Database("sqlite.db")
@@ -15,28 +13,47 @@ const controller = {
         try{
             if(!userName) throw "username-required"
             if(!password) throw "password-required"
+
+            const user = await new Promise((resolve, reject)=>{
+              let sqlite_user
             
-            // const user = await User.findOne({name:userName})
-            // if (!user) throw "nonexistant-user"
-            // if (!bcrypt.compareSync(password, user.password)) throw "wrong-password"
-            // user.lastLogin = new Date()
-            // await user.save()
-            let user
-            if (userName == "admon03" && password=="admon03"){
-              user = {
-                name:"admon03",
-                role:"user",
-                permissions:["imprimir-etiquetas"],
-              }
-            }
-            if (userName == "admin" && password =="12345"){
-              user = {
-                name:"admin",
-                role:"admin",
-                permissions:["imprimir-etiquetas"],
-              }
-            }
-            if (!user)throw "nonexistant-user"
+              sqlite.serialize(()=>{
+                sqlite.get(`select rowid, name, password, role from users where name = '${ userName }'`, (err,user)=>{
+                  if (err){
+                    console.log("user err", err)
+                    reject(err)
+                    return
+                  }
+                  if(!user){
+                    reject("nonexistant-user")
+                  } else {
+                    if (!bcrypt.compareSync(password, user.password)){
+                      reject("wrong-password")
+                    } else{
+                      sqlite_user = {
+                        ...user,
+                        permissions:[]
+                      }
+                      sqlite.all(`select * from user_permissions join permissions on user_permissions.permision=permissions.rowid where user ='${user.rowid}'`,(err, permissions)=>{
+                        if (err){
+                          reject(err)
+                          return
+                        }
+                        for (const perm of permissions){
+                          sqlite_user.permissions.push(perm.name)
+                        }
+                        resolve(sqlite_user)
+                      })
+                    }
+                  }
+                })
+              })
+  
+            }).catch((err)=>{
+              console.log("catched", err)
+              throw err
+            })
+
             payload = {
                 name:user.name,
                 role:user.role,
@@ -64,11 +81,18 @@ const controller = {
             if (body.auth.name !== "admin" || body.auth.name!=body.user) "cant-modify-user"
             if (!body.newPassword) throw "password-required"
 
-            const user = await User.findOneAndUpdate({name:body.user}, {$set:{
-                password: bcrypt.hashSync(body.newPassword,10),
-        
-            }})
-            success = true
+            success = await new Promise((resolve,reject)=>{
+              sqlite.serialize(()=>{
+                sqlite.run(`update users set password = '${bcrypt.hashSync(body.newPassword,10)}' where name = '${body.user}'`, (err,row)=>{
+                  if (err){ resolve(false); console.log("err")}
+                  resolve(true)
+                })
+             })
+            }).catch((err)=>{
+              console.log("catched", err)
+              throw err
+            })
+
         }catch(err){
             error = err.message ? err.message : err
         }
@@ -87,18 +111,45 @@ const controller = {
             if (!body.role) throw "role-required"
             if (!body.permissions) throw "permissions-required"
 
-            const config = await Config.findOne({}).lean()
+            const created = await new Promise((resolve,reject)=>{
+              sqlite.run(`insert into users values ('${body.userName}', '${bcrypt.hashSync(body.password, 10)}', '${body.role}', ${new Date().valueOf()})`, (err, row)=>{
+                if(err) {resolve(false); console.log("err", err)}
+                else{ resolve(true) }
+              })
+            }).catch((err)=>{
+              console.log("catched", err)
+              throw err
+            })
+            console.log("created", created)
+            if (created){
+              await new Promise((resolve,reject)=>{
+                sqlite.get(`select rowid from users where name ='${body.userName}'`, (err,user)=>{
+                  let perms = ""
+                  for (let index=0; index<body.permissions.length; index++){
+                    perms+="'"+body.permissions[index]+"'"
+                    if(index+1!=body.permissions.length){
+                      perms+=","
+                    }
+                  }
+                  console.log("perms", perms)
+                  sqlite.all(`select rowid from permissions where name in (${perms})`, (err, rows)=>{
+                    console.log("rows", rows)
+                    const perms = sqlite.prepare("INSERT INTO user_permissions VALUES (?, ?)")
+                    for (const row of rows){
+                      perms.run(row.rowid,user.rowid)
+                    }
+                    perms.finalize()
+                    resolve(true)
+                  })
+                })
 
-            
-            let permissions = body.permissions.filter((i)=> config.permissions.includes(i))
-
-            const user = {
-                name:body.userName,
-                password:bcrypt.hashSync(body.password, 10),
-                role:body.role,
-                permissions:permissions
+              }).catch((err)=>{
+                console.log("catched", err)
+                throw err
+              })
             }
-            await User.create(user)
+
+
             success = true
         }catch(err){
 
@@ -115,7 +166,21 @@ const controller = {
       let success
       try{
           if(!body.user) throw "user-required"
-          await User.deleteOne({name:body.user})
+          success = await new Promise((resolve,reject)=>{
+            sqlite.serialize(()=>{
+              sqlite.run(`delete from users where name='${body.user}'`,(err, user)=>{
+                if (err){
+                  resolve(false)
+                }else{
+                  resolve(true)
+                }
+                
+              })
+            })
+          }).catch((err)=>{
+            console.log("catched", err)
+            throw err
+          })
           success = true
       }catch(err){
           error = err
@@ -131,21 +196,39 @@ const controller = {
         try{
             if(!body.user) throw "user-required"
             if (!body.permissions) throw "permissions-required"
-            const config = await Config.findOne({}).lean()
-            
-            let permissions = body.permissions.filter((i)=> config.permissions.includes(i))
-            await User.updateOne({name:body.user}, {$set:{
-                permissions:permissions
-            }})
 
             sqlite.serialize(async ()=>{
-              await new Promise((resolve,reject)=>{
+              const user = await new Promise((resolve,reject)=>{
                 sqlite.get(`select rowid from users where users.name='${body.user}'`, (err1, user)=>{
                   if (err1) console.log("err1", err1)
                   console.log("user", user)
                   sqlite.run(`delete from user_permissions where user=${user.rowid}`)
-                  resolve()
+                  resolve(user)
                 })
+              }).catch((err)=>{
+                console.log("catched", err)
+                throw err
+              })
+              await new Promise((resolve,reject)=>{
+                let perms = ""
+                for (let index=0; index<body.permissions.length; index++){
+                  perms+="'"+body.permissions[index]+"'"
+                  if(index+1!=body.permissions.length){
+                    perms+=","
+                  }
+                }
+                console.log("perms", perms)
+                sqlite.all(`select rowid from permissions where name in (${perms})`, (err, rows)=>{
+                  console.log("rows", rows)
+                  const perms = sqlite.prepare("INSERT INTO user_permissions VALUES (?, ?)")
+                  for (const row of rows){
+                    perms.run(row.rowid,user.rowid)
+                  }
+                  perms.finalize()
+                })
+              }).catch((err)=>{
+                console.log("catched", err)
+                throw err
               })
             })
             
@@ -161,154 +244,10 @@ const controller = {
     getUsersList: async (body,params)=>{
         let error
         let users
-        let sqlite_users
+
         try{
             
-            users = await User.aggregate(
-                [
-                    {
-                      $match:
-                        /**
-                         * query: The query in MQL.
-                         */
-                        {
-                          $or:[
-                            {
-                              role: {
-                                $ne: "admin",
-                              }
-                            },
-                            {
-                              name:{
-                                $eq: body.auth.name
-                              }
-                            }
-                          ]
-                        
-                        }
-                    },
-                    {
-                      $unwind:
-                        /**
-                         * path: Path to the array field.
-                         * includeArrayIndex: Optional name for index.
-                         * preserveNullAndEmptyArrays: Optional
-                         *   toggle to unwind null and empty values.
-                         */
-                        {
-                          path: "$permissions",
-                          preserveNullAndEmptyArrays:true
-                        },
-                    },
-                    {
-                      $addFields:
-                        /**
-                         * newField: The new field name.
-                         * expression: The new field expression.
-                         */
-                        {
-                          permissionList: {
-                            $reduce: {
-                              input: {
-                                $map: {
-                                  input: {
-                                    $split: ["$permissions", "-"],
-                                  },
-                                  as: "word",
-                                  in: {
-                                    $concat: [
-                                      {
-                                        $toUpper: {
-                                          $substr: ["$$word", 0, 1],
-                                        },
-                                      },
-                                      {
-                                        $substr: [
-                                          "$$word",
-                                          1,
-                                          {
-                                            $strLenCP: "$$word",
-                                          },
-                                        ],
-                                      },
-                                    ],
-                                  },
-                                },
-                              },
-                              initialValue: "",
-                              in: {
-                                $concat: ["$$value", " ", "$$this"],
-                              },
-                            },
-                          },
-                        },
-                    },
-                    {
-                      $group: {
-                        _id: {
-                          name: "$name",
-                          role: "$role",
-                          lastLogin: "$lastLogin",
-                        },
-                        permissionList: {
-                          $addToSet: "$permissionList",
-                        },
-                        permissions: {
-                          $addToSet: "$permissions",
-                        },
-                      },
-                    },
-                    {
-                      $project:
-                        /**
-                         * specifications: The fields to
-                         *   include or exclude.
-                         */
-                        {
-                          _id: 0,
-                          name: "$_id.name",
-                          role: "$_id.role",
-                          lastLogin: {
-                            $dateToString: {
-                              format: "%H:%M %d/%m/%Y",
-                              date: {
-                                $dateFromString: {
-                                  dateString: {
-                                    $dateToString: {
-                                      format:
-                                        "%Y-%m-%dT%H:%M:%S.%L",
-                                      date: "$_id.lastLogin",
-                                    },
-                                  },
-                                  timezone: "+04:00",
-                                },
-                              },
-                            },
-                          },
-                          permissions: 1,
-                          permissionList: 1,
-                          permissionNumber: {
-                            $size: "$permissions",
-                          },
-                          roleDisplay:{
-                            $switch: {
-                                  branches: [
-                                    { case: { $eq: ["$_id.role", "admin"] }, then: "Administrador" },
-                                    { case: { $eq: ["$_id.role", "user"] }, then: "Usuario" },
-                                    // Add more branches for other role values
-                                  ],
-                                  default: "Unknown"
-                                }
-                          }
-                        },
-                    },
-                    {
-                      $sort:{
-                        role:1
-                      }
-                    }
-                  ])
-            sqlite_users = await new Promise((resolve,reject)=>{
+            users = await new Promise((resolve,reject)=>{
               sqlite.all("select users.name, users.password, users.role, users.lastlogin, permissions.name as permision from users left outer join user_permissions on users.rowid = user_permissions.user left outer join permissions on permissions.rowid = user_permissions.permision ", (err, rows)=>{
                 if (err){
                   console.log("err", err)
@@ -316,8 +255,9 @@ const controller = {
                 const u1 = {}
                 for (const u of rows){
                   if (u1[u.name]){
-                    u1[u.name].permissionNumber++
                     if (u.permision){
+                      u1[u.name].permissionNumber++
+
                       u1[u.name].permissions.push(u.permision)
                       u1[u.name].permissionList.push(u.permision.replace(new RegExp("[-]", "g"), " "))
                     }
@@ -325,13 +265,14 @@ const controller = {
                   }else{
                     u1[u.name] = {
                       ...u,
-                      permissionNumber:1,
+                      permissionNumber:0,
                       roleDisplay:u.role,
-                      upermissions:[],
+                      permissions:[],
                       permissionList:[]
 
                     }
                     if (u.permision){
+                      u1[u.name].permissionNumber++
                       u1[u.name].permissions.push(u.permision)
                       u1[u.name].permissionList.push(u.permision.replace(new RegExp("[-]", "g"), " "))
                     }
@@ -344,8 +285,11 @@ const controller = {
                 }
                 resolve(u2)
               })
+            }).catch((err)=>{
+              console.log("catched", err)
+              throw err
             })
-            console.log(sqlite_users)
+
 
             
 
@@ -354,68 +298,16 @@ const controller = {
         }
         return {
             error,
-            users,
-            sqlite_users
+            users
         }
     },
     getPermissions:async (body,params)=>{
         let error
         let permissions
-        let sqlite_permisions
+
         try{
-            
 
-            permissions=await Config.aggregate([
-                {
-                  $unwind:
-                    {
-                      path: "$permissions",
-                    },
-                },
-                {
-                  $project:
-                    {
-                      _id: 0,
-                      permissions: 1,
-                      displayName: {
-                        $reduce: {
-                          input: {
-                            $map: {
-                              input: {
-                                $split: ["$permissions", "-"],
-                              },
-                              as: "word",
-                              in: {
-                                $concat: [
-                                  {
-                                    $toUpper: {
-                                      $substr: ["$$word", 0, 1],
-                                    },
-                                  },
-                                  {
-                                    $substr: [
-                                      "$$word",
-                                      1,
-                                      {
-                                        $strLenCP: "$$word",
-                                      },
-                                    ],
-                                  },
-                                ],
-                              },
-                            },
-                          },
-                          initialValue: "",
-                          in: {
-                            $concat: ["$$value", " ", "$$this"],
-                          },
-                        },
-                      },
-                    },
-                },
-              ])
-
-            sqlite_permisions = await new Promise((resolve,reject)=>{
+            permissions = await new Promise((resolve,reject)=>{
               sqlite.all("select name from permissions", (err, rows)=>{
                 const p = []
                 for (const per of rows){
@@ -434,8 +326,8 @@ const controller = {
 
         return {
             error,
-            permissions,
-            sqlite_permisions
+            permissions
+            
         }
     },
 
