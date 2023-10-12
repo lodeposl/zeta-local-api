@@ -4,6 +4,9 @@ import bcrypt from "bcrypt"
 import { User } from "../../models/users.js"
 import {Config} from "../../models/config.js"
 
+import sqlite3 from "sqlite3"
+const sqlite = new sqlite3.Database("sqlite.db")
+
 const controller = {
     login:async ({userName, password},params)=>{
         let error
@@ -69,6 +72,7 @@ const controller = {
             if (!body.permissions) throw "permissions-required"
 
             const config = await Config.findOne({}).lean()
+
             
             let permissions = body.permissions.filter((i)=> config.permissions.includes(i))
 
@@ -117,6 +121,19 @@ const controller = {
             await User.updateOne({name:body.user}, {$set:{
                 permissions:permissions
             }})
+
+            sqlite.serialize(async ()=>{
+              await new Promise((resolve,reject)=>{
+                sqlite.get(`select rowid from users where users.name='${body.user}'`, (err1, user)=>{
+                  if (err1) console.log("err1", err1)
+                  console.log("user", user)
+                  sqlite.run(`delete from user_permissions where user=${user.rowid}`)
+                  resolve()
+                })
+              })
+            })
+            
+
         }catch(err){
             error = err
         }
@@ -128,6 +145,7 @@ const controller = {
     getUsersList: async (body,params)=>{
         let error
         let users
+        let sqlite_users
         try{
             
             users = await User.aggregate(
@@ -274,18 +292,60 @@ const controller = {
                       }
                     }
                   ])
+            sqlite_users = await new Promise((resolve,reject)=>{
+              sqlite.all("select users.name, users.password, users.role, users.lastlogin, permissions.name as permision from users left outer join user_permissions on users.rowid = user_permissions.user left outer join permissions on permissions.rowid = user_permissions.permision ", (err, rows)=>{
+                if (err){
+                  console.log("err", err)
+                }
+                const u1 = {}
+                for (const u of rows){
+                  if (u1[u.name]){
+                    u1[u.name].permissionNumber++
+                    if (u.permision){
+                      u1[u.name].permissions.push(u.permision)
+                      u1[u.name].permissionList.push(u.permision.replace(new RegExp("[-]", "g"), " "))
+                    }
+
+                  }else{
+                    u1[u.name] = {
+                      ...u,
+                      permissionNumber:1,
+                      roleDisplay:u.role,
+                      upermissions:[],
+                      permissionList:[]
+
+                    }
+                    if (u.permision){
+                      u1[u.name].permissions.push(u.permision)
+                      u1[u.name].permissionList.push(u.permision.replace(new RegExp("[-]", "g"), " "))
+                    }
+                  }
+                }
+                const u2 = []
+                for (const k in u1){
+                  delete u1[k].permision
+                  u2.push(u1[k])
+                }
+                resolve(u2)
+              })
+            })
+            console.log(sqlite_users)
+
+            
 
         }catch(err){
             error = err
         }
         return {
             error,
-            users
+            users,
+            sqlite_users
         }
     },
     getPermissions:async (body,params)=>{
         let error
         let permissions
+        let sqlite_permisions
         try{
             
 
@@ -339,13 +399,27 @@ const controller = {
                 },
               ])
 
+            sqlite_permisions = await new Promise((resolve,reject)=>{
+              sqlite.all("select name from permissions", (err, rows)=>{
+                const p = []
+                for (const per of rows){
+                  p.push({
+                    permissions:per.name,
+                    displayName:per.name.replace(new RegExp("[-]", "g"), " ")
+                  })
+                }
+                resolve(p)
+              })
+            })
+
         }catch(err){
             error = err
         }
 
         return {
             error,
-            permissions
+            permissions,
+            sqlite_permisions
         }
     },
 
