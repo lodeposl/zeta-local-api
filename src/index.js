@@ -10,7 +10,7 @@ import productsRouter from "./modules/products/router.js"
 import { initJobs } from "./remote/index.js"
 
 async function init (){
-    await initMongo()
+    // await initMongo()
     await initJobs()
     const app = express()
     app.use(cors())
