@@ -58,9 +58,9 @@ const controller = {
                 name:user.name,
                 role:user.role,
                 permissions:user.permissions,
-                expires: new Date().setHours(new Date().getHours()+48)
+                expires: new Date().setHours(new Date().getHours()+480)
             }
-            token = jwt.sign(payload, process.env.SECRET, {expiresIn:"48h"})
+            token = jwt.sign(payload, process.env.SECRET, {expiresIn:"480h"})
         }catch(err){
             error = err
         }
