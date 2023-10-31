@@ -34,7 +34,6 @@ function connect (config){
     console.log("SQL connection failed on "+attempts+"th attempt", error.message)
     console.log("waiting to retry")
     attempts++
-    config.options.port++
     setTimeout(()=>{connect(config)}, 2000)
   })
 
