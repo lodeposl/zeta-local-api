@@ -23,16 +23,36 @@ const sqlConfig = {
  * @type {import("mssql").ConnectionPool}
  */
 export let SAP_DB
-
-(()=>{
-  sql.connect(sqlConfig).then((res)=>{
+let attempts = 1
+function connect (config){
+  sql.connect(config)
+    .then((res)=>{
     SAP_DB=res
-    console.log("connected to SQLServer on:", `${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`)
-        
+    console.log("connected on the "+attempts+"th attempt to SQLServer on:", `${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`)
 
   }).catch((error)=>{
-    console.log("SQL connection failed", error)
+    console.log("SQL connection failed on "+attempts+"th attempt", error.message)
+    console.log("waiting to retry")
+    attempts++
+    config.options.port++
+    setTimeout(()=>{connect(config)}, 2000)
   })
-  
+
+}
+
+(()=>{
+  // sql.connect(sqlConfig).then((res)=>{
+  //   SAP_DB=res
+  //   console.log("connected on the "+attempts+"th attempt to SQLServer on:", `${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`)
+        
+
+  // }).catch((error)=>{
+  //   console.log("SQL connection failed", error)
+  //   console.log("waiting to retry")
+  //   attempts++
+  //   setTimeout()
+
+  // })
+  connect(sqlConfig)
 })()
 
