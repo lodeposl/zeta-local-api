@@ -21,13 +21,13 @@ async function task (){
             chunks:chunks.length
         })
         console.log("create", createUpdate)
-
         for(let i =0; i<chunks.length; i++){
             const result = await callListener("jobUpdateProducts", {
                 updateId:id,
                 chunk:i,
                 products:chunks[i]
             })
+
             console.log("chunk"+i+"resulted in", result)
         }
 

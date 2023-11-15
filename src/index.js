@@ -7,11 +7,10 @@ import cors from "cors"
 import { initMongo } from "./utils/mongo.js"
 import userRouter from "./modules/user/router.js"
 import productsRouter from "./modules/products/router.js"
-// import { initJobs } from "./remote/index.js"
+import { initJobs } from "./remote/index.js"
 
 async function init (){
     // await initMongo()
-    // await initJobs()
     const app = express()
     app.use(cors())
     app.use(express.static("public"))
@@ -23,6 +22,11 @@ async function init (){
     app.listen(process.env.PORT, ()=>{
         console.log(`Listening on:${process.env.PORT}`)
     })
+
+    setTimeout(()=>{
+        initJobs()
+
+    },2000)
 }
 
 init()

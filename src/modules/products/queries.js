@@ -48,7 +48,8 @@ export const PRODUCTS_BY_MARCA = function(FirmCode, includeNoStock){
         onHand,
         Price,
         OMRC.FirmName,
-        OMRC.FirmCode
+        OMRC.FirmCode,
+        OITM.ItmsGrpCod
     from 
         OITM 
     join 
@@ -80,6 +81,7 @@ export const ALL_PRODUCTS = function(){
     const query = `
         select 
             OITM.ItemCode,
+            OITM.ItmsGrpCod,
             ItemName,
             onHand,
             Price,
@@ -96,3 +98,11 @@ export const ALL_PRODUCTS = function(){
     return query
 
 }
+
+export const ITEM_GROUPS = function(){
+    const query = `
+    select ItmsGrpCod, ItmsGrpNam from OITB
+    `
+    return query
+}
+
