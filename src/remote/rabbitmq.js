@@ -1,6 +1,7 @@
 import { connect} from "amqplib"
 
 import uniqid from "uniqid"
+console.log("rabbitmq at ", process.env.RABBITMQ_URI )
 const con = await connect(process.env.RABBITMQ_URI)
 const requestChannel = await con.createChannel()
 const responseChannel = await con.createChannel()
