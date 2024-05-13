@@ -6,7 +6,8 @@ export const PRODUCT_BY_CODE = function(ItemCode){
         onHand,
         Price,
         OMRC.FirmName,
-        OMRC.FirmCode
+        OMRC.FirmCode,
+        TaxCodeAR
     from 
         OITM 
     join 
@@ -27,6 +28,7 @@ export const FIRM_AND_COUNT = function(includeNoStock){
         OMRC.FirmCode,
         FirmName,
         COUNT(OMRC.FirmCode) amountProducts
+        
     from OMRC 
     join OITM 
         on OMRC.FirmCode = OITM.FirmCode
@@ -49,7 +51,8 @@ export const PRODUCTS_BY_MARCA = function(FirmCode, includeNoStock){
         Price,
         OMRC.FirmName,
         OMRC.FirmCode,
-        OITM.ItmsGrpCod
+        OITM.ItmsGrpCod,
+        OITM.TaxCodeAR
     from 
         OITM 
     join 
@@ -86,7 +89,8 @@ export const ALL_PRODUCTS = function(){
             onHand,
             Price,
             FirmCode,
-            frozenFor
+            frozenFor,
+            OITM.TaxCodeAR
         from 
             OITM 
         join 
