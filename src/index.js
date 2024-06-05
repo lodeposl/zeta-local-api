@@ -4,7 +4,6 @@ import express from "express"
 import bodyParser from "body-parser"
 import cors from "cors"
 
-import { initMongo } from "./utils/mongo.js"
 import userRouter from "./modules/user/router.js"
 import productsRouter from "./modules/products/router.js"
 import { initJobs } from "./remote/index.js"

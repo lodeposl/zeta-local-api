@@ -1,20 +1,33 @@
 import { ALL_PRODUCTS } from "../modules/products/queries.js"
 import { SAP_DB } from "../utils/mssql.js"
-import { Config } from "../models/config.js"
-import { Image } from "../models/images.js"
 import { firebase } from "../firebase.js"
 import {getStorage} from "firebase-admin/storage"
 import fs from "fs"
 import crypto from "crypto"
-import path from "path"
-import { initMongo } from "../utils/mongo.js"
+import path, { resolve } from "path"
 import sharp from "sharp"
+import sqlite3 from "sqlite3"
+import { rejects } from "assert"
+
 async function task (){
     try{
-        await initMongo()
+        const sqlite = new sqlite3.Database("sqlite.db")
         //inicializar imagenes
+        sqlite.serialize(async ()=>{
+            
+
         const dbresult = await SAP_DB.query(ALL_PRODUCTS())
-        const allImages = await Image.find().lean()
+
+        const allImages = await new Promise((resolve,reject)=>{
+            sqlite.all("select * from images", (err, rows)=>{
+                if (err){
+                    console.log("ERR 1", err); reject(err)
+                }else{
+                    resolve(rows)
+                }
+            })
+        }) 
+
         const allCodes = allImages.map((i)=>{
             return i.ItemCode
         })
@@ -24,9 +37,11 @@ async function task (){
         const notCreated = productCodes.filter((item)=>{
             return allCodes.indexOf(item)==-1;
         })
+        const createImages = sqlite.prepare("INSERT INTO images VALUES (?, ?, ?)")
         for(const code of notCreated){
-            await Image.create({ItemCode:code})
+            createImages.run(code, "", -1)
         }
+        createImages.finalize()
         //inicializar imagenes
         const firebaseBucket = getStorage()
 
@@ -45,17 +60,48 @@ async function task (){
         // DONE -Testing images Hash´s to not re-upload the same image
         // DONE -Compressing images to a standard size
         //  -Maybe make it so that only few at a time are updated
-
-        const config = await Config.findOne()
-        const imagesNotUpdated = await Image.find({lastUpdate:{$lt:config.imageUpdate}}).lean()
+        const config = await new Promise((resolve,reject)=>{
+            sqlite.get("select * from config where code=1", (err, row)=>{
+                if (err){
+                    console.log("ERR 2", err); reject(err)
+                }else{
+                    resolve(row)
+                }
+            })
+        })
+        const imagesNotUpdated = await new Promise((resolve,reject)=>{
+            sqlite.all("select * from images where lastUpdate<"+config.imageUpdate, (err, rows)=>{
+                if (err){
+                    console.log("ERR 3", err);reject(err)
+                }else{
+                    resolve(rows)
+                }
+            })
+        })
         if (imagesNotUpdated.length==0){
-            config.imageUpdate+=1
-            await config.save()
+            await new Promise((resolve, reject)=>{
+                sqlite.run("update config set imageUpdate="+(config.imageUpdate+1), (err)=>{
+                    if (err){
+                        console.log("ERR 6", err); reject(err)
+                    }else{
+                        resolve()
+                    }
+                })
+            })
             console.log("config updated")
         }
             for (const image of imagesNotUpdated){
                 try{
-                    const imageData = await Image.findOne({ItemCode:image.ItemCode})
+                    const imageData = await new Promise((resolve,reject)=>{
+                        sqlite.get("select * from images where ItemCode='"+image.ItemCode+"'", (err, row)=>{
+                            if (err){
+                                console.log("ERR 4", err); reject(err)
+                            }else{
+                                resolve(row)
+                            }
+                        })
+                        
+                    })
                     const update = await new Promise((resolve,reject)=>{
                         fs.readFile("./public/compressed/"+image.ItemCode+".jpeg", (err,data)=>{
 
@@ -64,14 +110,14 @@ async function task (){
                                 hashSum.update(data);
                                 const digest = hashSum.digest("base64")
                                 if (imageData.hash != digest ){
-                                    console.log("Its different, update it")
+                                    console.log(`${image.ItemCode} is Different, update it`)
                                     const options = {
                                         destination: `products/${image.ItemCode}.jpeg`,
                                     }     
                                     firebaseBucket.bucket().upload("./public/compressed/"+image.ItemCode+".jpeg", options).then((res)=>{
                                         resolve(digest)
                                     }).catch((err)=>{
-                                        reject(err)
+                                       reject(err)
                                     })
                                 }else{
                                     console.log("Its the same, ignore it")
@@ -88,8 +134,15 @@ async function task (){
                         imageData.hash = update
                     }
                     imageData.lastUpdate = config.imageUpdate
-                    await imageData.save()
-                    // await Image.updateOne({ItemCode:image.ItemCode}, {$set:{lastUpdate:config.imageUpdate}})
+                    await new Promise((resolve,reject)=>{
+                        sqlite.run("UPDATE images SET hash='"+imageData.hash+"', lastUpdate="+imageData.lastUpdate+" where ItemCode='"+image.ItemCode+"'", (err)=>{
+                            if (err){
+                                console.log("ERR 5", err); reject(err)
+                            }else{
+                                resolve(true)
+                            }
+                        })
+                    })
 
                 }catch(error){
                     console.log("error", error)
@@ -98,10 +151,11 @@ async function task (){
             console.log("All images updated")
         
 
-
+        })
     }catch(error){
         console.log("failed:", error)
     }
+    
 }
 async function time (){
     return "0 0 6/12 * * *"
