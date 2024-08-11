@@ -6,6 +6,7 @@ import cors from "cors"
 
 import userRouter from "./modules/user/router.js"
 import productsRouter from "./modules/products/router.js"
+import ticketsRouter from "./modules/tickets/router.js"
 import { initJobs } from "./remote/index.js"
 
 async function init (){
@@ -17,6 +18,7 @@ async function init (){
     app.use(bodyParser.json())
     app.use("/user", userRouter)
     app.use("/products", productsRouter)
+    app.use("/tickets", ticketsRouter)
 
     app.listen(process.env.PORT, ()=>{
         console.log(`Listening on:${process.env.PORT}`)
