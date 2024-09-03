@@ -11,6 +11,7 @@ import { rejects } from "assert"
 
 async function task (){
     try{
+        if (SAP_DB ===undefined) throw "no-sap-db"
         const sqlite = new sqlite3.Database("sqlite.db")
         //inicializar imagenes
         sqlite.serialize(async ()=>{
@@ -145,7 +146,7 @@ async function task (){
                     })
 
                 }catch(error){
-                    console.log("error", error)
+                    console.log("error",new Date(), error)
                 }
             }
             console.log("All images updated")
@@ -153,7 +154,7 @@ async function task (){
 
         })
     }catch(error){
-        console.log("failed:", error)
+        console.log("failed:", new Date(), error)
     }
     
 }
