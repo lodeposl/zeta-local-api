@@ -8,6 +8,7 @@ productsRouter.get("/info/:code", callController(controller.queryCode))
 productsRouter.get("/qr/:code", isAuth, checkPermissions(["imprimir-etiquetas"]), callController(controller.generateQR))
 productsRouter.get("/marcas/:includeNoStock", isAuth, checkPermissions(["imprimir-etiquetas"]),  callController(controller.queryMarcas))
 productsRouter.get("/byMarca/:code/:includeNoStock", isAuth, checkPermissions(["imprimir-etiquetas"]), callController(controller.productsByMarca))
+productsRouter.get("/bySearch/:brand/:search",  callController(controller.productsBySearch))
 
 
 

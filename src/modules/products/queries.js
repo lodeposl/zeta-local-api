@@ -110,3 +110,51 @@ export const ITEM_GROUPS = function(){
     return query
 }
 
+export const PRODUCTS_BY_SEARCH = function(brandCode,search){
+    const trimmed = search.trim()
+    const split = trimmed.split(' ')
+    let filter = ""
+    console.log("brand", brandCode)
+    if (brandCode){
+        filter = `OITM.FirmCode = '${brandCode}' and `
+    }
+    console.log("split:", split)
+    if (split.length=== 1){
+        filter +=`(OITM.ItemCode like '%${trimmed}%' or ItemName like '%${trimmed}%')`
+    }else{
+        filter += "("
+        for (const part of split){
+            filter += `(ItemName like '%${part}%' or OITM.ItemCode like '%${part}%') and `
+        }
+        filter = filter.slice(0, filter.length - 4)   
+        filter += ")"
+    }
+    const query =`
+    select
+        OITM.ItemCode,
+        ItemName,
+        Price,
+        OMRC.FirmCode,
+        FirmName,
+        onHand
+    from OITM 
+    join ITM1
+        on OITM.ItemCode = ITM1.ItemCode
+	join OMRC 
+        on OMRC.FirmCode = OITM.FirmCode
+    where 
+        OITM.frozenFor = 'N' 
+        and onHand >0 
+        and PriceList='3' 
+        and ${filter}
+    group by
+        OITM.ItemCode,
+        ItemName,
+        Price,
+        OMRC.FirmCode,
+        FirmName,
+        onHand
+    `
+    console.log("quewry:" , query)
+    return query
+}
