@@ -1,4 +1,6 @@
 export const PRODUCT_BY_CODE = function(ItemCode){
+    ItemCode = ItemCode.replace(/[\[\]\(\)\;\+\:]/g, "")
+    ItemCode = ItemCode.replace("'","''");
     return `
     select 
         OITM.ItemCode,
@@ -23,6 +25,8 @@ export const PRODUCT_BY_CODE = function(ItemCode){
 }
 
 export const FIRM_AND_COUNT = function(includeNoStock){
+    includeNoStock = includeNoStock ? true : false
+
     const query = `
     select
         OMRC.FirmCode,
@@ -43,6 +47,9 @@ export const FIRM_AND_COUNT = function(includeNoStock){
 }
 
 export const PRODUCTS_BY_MARCA = function(FirmCode, includeNoStock){
+    FirmCode = FirmCode.replace(/[\[\]\(\)\;\+\:]/g, "")
+    FirmCode = FirmCode.replace("'","''");
+    includeNoStock = includeNoStock ? true : false
     const query = `
     select 
         OITM.ItemCode,
@@ -112,6 +119,11 @@ export const ITEM_GROUPS = function(){
 }
 
 export const PRODUCTS_BY_SEARCH = function(brandCode,search){
+    brandCode = brandCode.replace(/[\[\]\(\)\;\+\:]/g, "")
+    search = search.replace(/[\[\]\(\)\;\+\:]/g, "")
+    brandCode = brandCode.replace("'","''");
+    search = search.replace("'","''");
+
     const trimmed = search.trim()
     const split = trimmed.split(' ')
     let filter = ""
