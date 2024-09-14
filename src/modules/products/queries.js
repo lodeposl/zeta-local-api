@@ -119,10 +119,13 @@ export const ITEM_GROUPS = function(){
 }
 
 export const PRODUCTS_BY_SEARCH = function(brandCode,search){
-    brandCode = brandCode.replace(/[\[\]\(\)\;\+\:]/g, "")
     search = search.replace(/[\[\]\(\)\;\+\:]/g, "")
-    brandCode = brandCode.replace("'","''");
     search = search.replace("'","''");
+
+    if (brandCode){
+        brandCode = brandCode.replace(/[\[\]\(\)\;\+\:]/g, "")
+        brandCode = brandCode.replace("'","''");
+    }
 
     const trimmed = search.trim()
     const split = trimmed.split(' ')
