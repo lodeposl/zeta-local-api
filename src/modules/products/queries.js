@@ -66,7 +66,8 @@ export const PRODUCTS_BY_MARCA = function(FirmCode, includeNoStock){
         and PriceList=3 
         and OITM.FirmCode='${FirmCode}'
         ${includeNoStock ? '' : 'and OITM.onHand > 0'}
-    `
+    order by ItemName asc
+        `
     return query
 }
 
@@ -154,6 +155,7 @@ export const PRODUCTS_BY_SEARCH = function(brandCode,search){
         OMRC.FirmCode,
         FirmName,
         onHand
+    order by ItemName asc
     `
     console.log("quewry:" , query)
     return query
