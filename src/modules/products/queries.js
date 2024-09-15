@@ -55,6 +55,7 @@ export const PRODUCTS_BY_MARCA = function(FirmCode, includeNoStock){
         OITM.ItemCode,
         ItemName,
         onHand,
+        U_NIV_I,
         Price,
         OMRC.FirmName,
         OMRC.FirmCode,
@@ -70,7 +71,7 @@ export const PRODUCTS_BY_MARCA = function(FirmCode, includeNoStock){
             on OITM.FirmCode = OMRC.FirmCode
     where 
         OITM.frozenFor = 'N'
-        and PriceList=3 
+        and PriceList=3
         and OITM.FirmCode='${FirmCode}'
         ${includeNoStock ? '' : 'and OITM.onHand > 0'}
     order by ItemName asc
@@ -136,11 +137,11 @@ export const PRODUCTS_BY_SEARCH = function(brandCode,search){
     }
     console.log("split:", split)
     if (split.length=== 1){
-        filter +=`(OITM.ItemCode like '%${trimmed}%' or ItemName like '%${trimmed}%')`
+        filter +=`(OITM.ItemCode like '%${trimmed}%' or ItemName like '%${trimmed}%' or OITM.U_NIV_I like '%${trimmed}%')`
     }else{
         filter += "("
         for (const part of split){
-            filter += `(ItemName like '%${part}%' or OITM.ItemCode like '%${part}%') and `
+            filter += `(ItemName like '%${part}%' or OITM.ItemCode like '%${part}%' or OITM.U_NIV_I like '%${part}%') and `
         }
         filter = filter.slice(0, filter.length - 4)   
         filter += ")"
@@ -151,6 +152,7 @@ export const PRODUCTS_BY_SEARCH = function(brandCode,search){
         ItemName,
         Price,
         OMRC.FirmCode,
+        U_NIV_I,
         FirmName,
         onHand
     from OITM 
@@ -168,6 +170,7 @@ export const PRODUCTS_BY_SEARCH = function(brandCode,search){
         ItemName,
         Price,
         OMRC.FirmCode,
+        U_NIV_I,
         FirmName,
         onHand
     order by ItemName asc
