@@ -1,7 +1,31 @@
 import qrcode from "qrcode"
 import { SAP_DB as sql} from "../../utils/mssql.js"
 import fs from "fs"
+// import ipp from "ipp"
+// import PDFDocument from "pdfkit"
+import ptp from "pdf-to-printer";
+
 import { MARCAS, PRODUCT_BY_CODE, FIRM_AND_COUNT, PRODUCTS_BY_MARCA, PRODUCTS_BY_SEARCH } from "./queries.js"
+import {jsPDF} from 'jspdf';
+import playwright from "playwright"
+
+async function printhtml(htmlContent, outputPath) {
+    const browser = await playwright.chromium.launch();
+    const page = await browser.newPage();
+    await page.setContent(htmlContent);
+    await page.pdf({ path: outputPath, width:"6.4cm", height:"3.5cm" });
+    console.log('PDF generated successfully');
+    await browser.close();
+  }
+
+function    generatePDFfromHTML(htmlContent, outputPath) {
+  const doc = new jsPDF();
+  doc.html(htmlContent, {
+
+  });
+  doc.save(outputPath)
+  console.log('PDF generated successfully');
+}
 const controller = {
     getAllMarcas: async (body, params)=>{
         let error
@@ -123,6 +147,53 @@ const controller = {
             product,
             image
         }
+    },
+    print: async(body, params)=>{
+        let result
+        try{
+
+            // var doc = new PDFDocument({margin:0});
+            // doc.text(".", 0, 780);
+            printhtml(body.rawHtml, "./docs/output.pdf")
+            ptp.print("./docs/output.pdf", {
+                orientation:"landscape",
+                scale:"shrink",
+                // printDialog:true
+            }).then(console.log);
+
+            // doc.end()
+            // doc.save()
+        //     await new Promise((resolve,reject)=>{
+
+        //     fs.readFile("./docs/qr.pdf",(err,data)=>{
+        //         console.log("err", err)
+        //         console.log("data", data)
+        //         let printer = ipp.Printer("http://admon03/ipp/printer");
+        //         // console.log (body)
+        //         var msg = {
+        //             "operation-attributes-tag": {
+        //                 "requesting-user-name": "William",
+        //                 "job-name": "My Test Job",
+        //                 "document-format": "application/pdf"
+        //             },
+        //             data: data
+        //         };
+        //         printer.execute("Print-Job", msg, function(err, res){
+        //             console.log("MAG NIGGA", err)
+        //             console.log(res);
+        //             resolve("timmy")
+        //         });
+        //     })
+        // })
+            // ptp.print("./docs/qr.pdf").then(console.log);
+
+
+
+            result = "test"
+        }catch(error){
+            console.log ("lol", error)
+        }
+        return result
     }
 }
 
