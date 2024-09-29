@@ -156,8 +156,9 @@ const controller = {
 
             // var doc = new PDFDocument({margin:0});
             // doc.text(".", 0, 780);
+            await printhtml(body.rawHtml,`./docs/${body.file}.pdf`)
+
             await new Promise((resolve, reject)=>{
-                printhtml(body.rawHtml,`./docs/${body.file}.pdf`)
                 ptp.print(`./docs/${body.file}.pdf`, {
                     orientation:"landscape",
                     scale:"shrink",
