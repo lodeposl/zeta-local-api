@@ -10,6 +10,7 @@ productsRouter.get("/marcas/:includeNoStock", isAuth, checkPermissions(["imprimi
 productsRouter.get("/byMarca/:code/:includeNoStock", isAuth, checkPermissions(["imprimir-etiquetas"]), callController(controller.productsByMarca))
 productsRouter.get("/bySearch/:brand/:search",  callController(controller.productsBySearch))
 productsRouter.post("/print",  callController(controller.print))
+productsRouter.post("/redirect",  callController(controller.redirect))
 
 
 

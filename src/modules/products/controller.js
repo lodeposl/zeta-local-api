@@ -4,6 +4,7 @@ import fs from "fs"
 // import ipp from "ipp"
 // import PDFDocument from "pdfkit"
 import ptp from "pdf-to-printer";
+import axios from "axios"
 
 import { MARCAS, PRODUCT_BY_CODE, FIRM_AND_COUNT, PRODUCTS_BY_MARCA, PRODUCTS_BY_SEARCH } from "./queries.js"
 import playwright from "playwright"
@@ -13,7 +14,7 @@ async function printhtml(htmlContent, outputPath) {
 
     const page = await browser.newPage();
     await page.setContent(htmlContent);
-    await page.pdf({ path: outputPath, width:"6.4cm", height:"3.5cm" });
+    await page.pdf({ path: outputPath, width:"6cm", height:"4cm" });
     
     console.log('PDF generated successfully');
     await browser.close();
@@ -149,6 +150,25 @@ const controller = {
             image
         }
     },
+    redirect:async(body, params)=>{
+        let x
+        let e
+        try {
+            const api = axios.create( {baseURL: "http://192.168.0.110:4000"})
+            const r = await api.post("products/print", {
+                rawHtml:body.rawHtml,
+                file:body.file
+            })
+            x = r.data
+            console.log("x",x)
+        }catch(error){
+            e = error
+        }
+        return {
+            x,
+            e
+        }
+    },
     print: async(body, params)=>{
         let result
         let error
@@ -162,6 +182,7 @@ const controller = {
                 ptp.print(`./docs/${body.file}.pdf`, {
                     orientation:"landscape",
                     scale:"shrink",
+                    
                     // printDialog:true
                 }).then(resolve).catch(reject);
             })
