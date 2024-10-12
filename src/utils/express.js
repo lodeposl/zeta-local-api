@@ -39,20 +39,30 @@ export function checkRole(roles){
     }
 }
 
-export function checkPermissions(permissions){
+export function checkPermissions($and, $or=[]){
     return (req, res, next)=>{
-        let hasAll = true
-        for (const permReq of permissions){
-            if(req.body.auth.permissions.indexOf(permReq)<0){
-                hasAll = false
+        let hasSomeOr = $or.length==0? true : false
+
+        for (const permReq of $or){
+            if(req.body.auth.permissions.indexOf(permReq)>=0){
+                hasSomeOr = true
+                break
             }
         }
-        if (!hasAll){
+
+        let hasAllAnd = true
+        for (const permReq of $and){
+            if(req.body.auth.permissions.indexOf(permReq)<0){
+                hasAllAnd = false
+            }
+        }
+        console.log("W happen", hasAllAnd, hasSomeOr)
+        if (hasAllAnd && hasSomeOr){
+            next()
+        }else{
             res.status(200).json({
                 error:"not-enough-permissions"
             })
-        }else{
-            next()
         }
     }
 }

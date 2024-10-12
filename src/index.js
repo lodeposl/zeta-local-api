@@ -15,7 +15,7 @@ async function init (){
     app.use(cors())
     app.use(express.static("public"))
     app.use(express.static("front"))
-    app.use("/precios",express.static("visor"))
+    // app.use("/precios",express.static("visor"))
     app.use(bodyParser.json())
     app.use("/user", userRouter)
     app.use("/products", productsRouter)
