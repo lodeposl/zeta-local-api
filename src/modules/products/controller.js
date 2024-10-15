@@ -8,7 +8,7 @@ import axios from "axios"
 
 import { MARCAS, PRODUCT_BY_CODE, FIRM_AND_COUNT, PRODUCTS_BY_MARCA, PRODUCTS_BY_SEARCH } from "./queries.js"
 import playwright from "playwright"
-
+import PDFMerger from "pdf-merger-js";
 async function printhtml(htmlContent, outputPath) {
     const browser = await playwright.chromium.launch();
 
@@ -154,14 +154,18 @@ const controller = {
         let x
         let e
         try {
-            const api = axios.create( {baseURL: "http://192.168.0.110:4000"})
+            console.log("RED")
+            const api = axios.create( {baseURL: "http://localhost:4000"})
             const r = await api.post("products/print", {
+                type:body.type,
+                files:body.files,
                 rawHtml:body.rawHtml,
                 file:body.file
             })
             x = r.data
             console.log("x",x)
         }catch(error){
+            console.log("Fucking red", error)
             e = error
         }
         return {
@@ -174,10 +178,19 @@ const controller = {
         let error
         try{
 
-            // var doc = new PDFDocument({margin:0});
-            // doc.text(".", 0, 780);
-            await printhtml(body.rawHtml,`./docs/${body.file}.pdf`)
+            if (body.type=="multi"){
+                const merger = new PDFMerger()
+                for (let i = 0; i < body.files.length; i++) {
+                    await printhtml(body.files[i].rawHtml,`./docs/${body.files[i].file}.pdf`)
+                    await merger.add(`./docs/${body.files[i].file}.pdf`);
+                }
+                await merger.save(`./docs/${body.file}.pdf`)
+                
+            }else{
+                await printhtml(body.rawHtml,`./docs/${body.file}.pdf`)
 
+
+            }
             await new Promise((resolve, reject)=>{
                 ptp.print(`./docs/${body.file}.pdf`, {
                     orientation:"landscape",
@@ -186,6 +199,7 @@ const controller = {
                     // printDialog:true
                 }).then(resolve).catch(reject);
             })
+
             result = "test"
         }catch(error){
             console.log ("lol", error)

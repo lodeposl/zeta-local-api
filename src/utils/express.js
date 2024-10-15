@@ -56,7 +56,6 @@ export function checkPermissions($and, $or=[]){
                 hasAllAnd = false
             }
         }
-        console.log("W happen", hasAllAnd, hasSomeOr)
         if (hasAllAnd && hasSomeOr){
             next()
         }else{
