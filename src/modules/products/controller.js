@@ -177,14 +177,15 @@ const controller = {
         let result
         let error
         try{
-
+            let multiName = body.file
             if (body.type=="multi"){
+                multiName = "Bulk "+ (new Date()+""),replace(/:/g,"-")
                 const merger = new PDFMerger()
                 for (let i = 0; i < body.files.length; i++) {
                     await printhtml(body.files[i].rawHtml,`./docs/${body.files[i].file}.pdf`)
                     await merger.add(`./docs/${body.files[i].file}.pdf`);
                 }
-                await merger.save(`./docs/${body.file}.pdf`)
+                await merger.save(`./docs/${multiName}.pdf`)
                 
             }else{
                 await printhtml(body.rawHtml,`./docs/${body.file}.pdf`)
@@ -192,9 +193,10 @@ const controller = {
 
             }
             await new Promise((resolve, reject)=>{
-                ptp.print(`./docs/${body.file}.pdf`, {
+                ptp.print(`./docs/${multiName}.pdf`, {
                     orientation:"landscape",
                     scale:"shrink",
+                    
                     
                     // printDialog:true
                 }).then(resolve).catch(reject);
