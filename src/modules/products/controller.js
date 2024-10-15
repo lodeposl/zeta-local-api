@@ -155,7 +155,7 @@ const controller = {
         let e
         try {
             console.log("RED")
-            const api = axios.create( {baseURL: "http://092.168.0.105:4000"})
+            const api = axios.create( {baseURL: "http://192.168.0.105:4000"})
             const r = await api.post("products/print", {
                 type:body.type,
                 files:body.files,
