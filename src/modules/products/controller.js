@@ -179,7 +179,7 @@ const controller = {
         try{
             let multiName = body.file
             if (body.type=="multi"){
-                multiName = "Bulk "+ (new Date()+""),replace(/:/g,"-")
+                multiName = "Bulk "+ (new Date()+"").replace(/:/g,"-")
                 const merger = new PDFMerger()
                 for (let i = 0; i < body.files.length; i++) {
                     await printhtml(body.files[i].rawHtml,`./docs/${body.files[i].file}.pdf`)
