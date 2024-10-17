@@ -9,8 +9,8 @@ productsRouter.get("/qr/:code", isAuth, checkPermissions(["imprimir-etiquetas"])
 productsRouter.get("/marcas/:includeNoStock", isAuth, checkPermissions([],["imprimir-etiquetas", "visor-de-precios"]),  callController(controller.queryMarcas))
 productsRouter.get("/byMarca/:code/:includeNoStock", isAuth, checkPermissions([],["imprimir-etiquetas", "visor-de-precios"]), callController(controller.productsByMarca))
 productsRouter.get("/bySearch/:brand/:search", isAuth, checkPermissions(["visor-de-precios"]), callController(controller.productsBySearch))
-productsRouter.post("/print",  callController(controller.print))
 productsRouter.post("/redirect",  callController(controller.redirect))
+productsRouter.post("/jspdf",  callController(controller.JSPDF))
 
 
 
