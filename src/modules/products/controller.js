@@ -128,7 +128,7 @@ const controller = {
             const url = `http://${process.env.FRONT_IP}/#/consulta/${params.code}`
             const filePath = `./public/${params.code}.png`
              image = `${params.code}.png`
-            let found = false
+
             if(!fs.existsSync(filePath)){
                 qrcode.toFile(filePath,url, {
                     version:4,
@@ -198,6 +198,21 @@ const controller = {
                 
                 const price=861
                 doc.setFontSize(16)
+                
+                //generate qr
+                const url = `http://${process.env.FRONT_IP}/#/consulta/${product.id}`
+                const filePath = `./public/${product.id}.png`
+  
+                if(!fs.existsSync(filePath)){
+                    await qrcode.toFile(filePath,url, {
+                        version:4,
+                        errorCorrectionLevel:"M",
+                        color:{
+                            light: '#0000'
+                        }
+                    })
+                }
+
 
                 const qrFile = fs.readFileSync("./public/"+product.id+".png")
                 const qr = new Uint8Array(qrFile);
