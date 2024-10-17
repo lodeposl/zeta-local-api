@@ -121,7 +121,7 @@ const controller = {
         try{
             if (!params.code) throw "code-required"
             const result = await sql.query(PRODUCT_BY_CODE(params.code))
-            if (result.recordset.length===0) throw "invalid-code"
+            if (result.recordset.length===0) throw "invalid-code-"+params.code
             product = result.recordset[0]
 
 
@@ -235,11 +235,12 @@ const controller = {
                 
                 let line = doc.splitTextToSize(product.name, rightEdge - leftEdge - leftSpace -4)
                 let FS = 16
-                while (line.length > 3){
+                while (line.length > (FS>12?3:4)){
                     FS-=0.1
                     doc.setFontSize(FS)
                     line = doc.splitTextToSize(product.name, rightEdge - leftEdge - leftSpace -4)
                 }
+                console.log("FS", FS)
                 doc.text(line, leftEdge+leftSpace +4, 1.8, "left")
                 doc.setFontSize(16)
                 
