@@ -153,7 +153,6 @@ const controller = {
         let x
         let e
         try {
-            console.log("redirecting")
             const api = axios.create( {baseURL: "http://192.168.0.105:4000"})
             const r = await api.post("products/jspdf", {
                 products:body.products,
@@ -163,7 +162,6 @@ const controller = {
             if (x.error){
                 e = x.error
             }
-            console.log("x",x)
         }catch(error){
             console.log("error", error)
             e = error.message
@@ -179,7 +177,6 @@ const controller = {
         global.navigator = {};
         global.btoa = () => {};
         let FS
-        console.log("JSING", body)
         // Default export is a4 paper, portrait, using millimeters for units
         try{
             let pdfName = "Bulk "+ (new Date()+"").replace(/:/g,"-")

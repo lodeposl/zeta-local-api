@@ -131,9 +131,7 @@ const controller = {
                       perms+=","
                     }
                   }
-                  console.log("perms", perms)
                   sqlite.all(`select rowid from permissions where name in (${perms})`, (err, rows)=>{
-                    console.log("rows", rows)
                     const perms = sqlite.prepare("INSERT INTO user_permissions VALUES (?, ?)")
                     for (const row of rows){
                       perms.run(row.rowid,user.rowid)
@@ -201,7 +199,6 @@ const controller = {
               const user = await new Promise((resolve,reject)=>{
                 sqlite.get(`select rowid from users where users.name='${body.user}'`, (err1, user)=>{
                   if (err1) console.log("err1", err1)
-                  console.log("user", user)
                   sqlite.run(`delete from user_permissions where user=${user.rowid}`)
                   resolve(user)
                 })
@@ -217,9 +214,7 @@ const controller = {
                     perms+=","
                   }
                 }
-                console.log("perms", perms)
                 sqlite.all(`select rowid from permissions where name in (${perms})`, (err, rows)=>{
-                  console.log("rows", rows)
                   const perms = sqlite.prepare("INSERT INTO user_permissions VALUES (?, ?)")
                   for (const row of rows){
                     perms.run(row.rowid,user.rowid)

@@ -82,7 +82,6 @@ export const FIRM_AND_COUNT = function(includeNoActive=false, includeNoPrice=fal
         OMRC.FirmCode,
         OMRC.FirmName 
     order by FirmName asc`
-    console.log(query)
     return query
 }
 
@@ -117,7 +116,6 @@ export const PRODUCTS_BY_MARCA = function(FirmCode, includeNoActive=false, inclu
         ${ includeNoPrice ? '' : 'and ITM1.Price > 0'}
     order by ItemName asc
         `
-        console.log(query)
     return query
 }
 
@@ -173,11 +171,9 @@ export const PRODUCTS_BY_SEARCH = function(brandCode,search){
     const trimmed = search.trim()
     const split = trimmed.split(' ')
     let filter = ""
-    console.log("brand", brandCode)
     if (brandCode){
         filter = `OITM.FirmCode = '${brandCode}' and `
     }
-    console.log("split:", split)
     if (split.length=== 1){
         filter +=`(OITM.ItemCode like '%${trimmed}%' or ItemName like '%${trimmed}%' or OITM.U_NIV_I like '%${trimmed}%')`
     }else{
@@ -218,6 +214,5 @@ export const PRODUCTS_BY_SEARCH = function(brandCode,search){
         onHand
     order by ItemName asc
     `
-    console.log("quewry:" , query)
     return query
 }
