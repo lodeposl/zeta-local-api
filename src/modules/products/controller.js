@@ -185,13 +185,19 @@ const controller = {
             let pdfName = "Bulk "+ (new Date()+"").replace(/:/g,"-")
 
             const merger = new PDFMerger()
+            const productData = {
 
+            }
             const result = await sql.query(PRODUCTS_BY_CODES(body.products, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
             if (result.recordset.length===0) throw "invalid-codes"
             const allProducts = result.recordset
-
             for (const product of allProducts){
-                
+                productData[product.ItemCode] = product
+            }
+
+
+            for (const ItemCode of body.products){
+                const product = productData[ItemCode]
                 
                 const doc = new jsPDF({
                     orientation: "landscape",
