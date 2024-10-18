@@ -24,6 +24,40 @@ export const PRODUCT_BY_CODE = function(ItemCode){
         and OITM.ItemCode='${ItemCode}'`
 }
 
+export const PRODUCTS_BY_CODES = function(ItemCodes, includeNoStock = false){
+    let parsed = ''
+    for (let ItemCode of ItemCodes){
+        ItemCode = ItemCode.replace(/[\[\]\(\)\;\+\:]/g, "")
+        ItemCode = ItemCode.replace("'","''");
+        parsed += "'"+ItemCode+"',"
+    }
+    parsed = parsed.slice(0,-1)
+    return `
+    select 
+        OITM.ItemCode,
+        ItemName,
+        onHand,
+        Price,
+        OMRC.FirmName,
+        OMRC.FirmCode,
+        TaxCodeAR
+    from 
+        OITM 
+    join 
+        ITM1 
+            on OITM.ItemCode = ITM1.ItemCode 
+    join
+        OMRC
+            on OITM.FirmCode = OMRC.FirmCode
+    where 
+        OITM.frozenFor = 'N'
+        and PriceList=3 
+        ${ includeNoStock ? '' : 'and OITM.OnHand > 0'}
+
+        and OITM.ItemCode in (${parsed})`
+}
+
+
 export const FIRM_AND_COUNT = function(includeNoStock){
     includeNoStock = includeNoStock ? true : false
 

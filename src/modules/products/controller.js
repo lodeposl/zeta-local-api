@@ -6,7 +6,7 @@ import fs from "fs"
 import ptp from "pdf-to-printer";
 import axios from "axios"
 
-import { MARCAS, PRODUCT_BY_CODE, FIRM_AND_COUNT, PRODUCTS_BY_MARCA, PRODUCTS_BY_SEARCH } from "./queries.js"
+import { MARCAS, PRODUCT_BY_CODE, FIRM_AND_COUNT, PRODUCTS_BY_MARCA, PRODUCTS_BY_SEARCH, PRODUCTS_BY_CODES } from "./queries.js"
 import PDFMerger from "pdf-merger-js";
 import { jsPDF } from "jspdf";
 
@@ -160,14 +160,17 @@ const controller = {
                 props:body.props
             })
             x = r.data
+            if (x.error){
+                e = x.error
+            }
             console.log("x",x)
         }catch(error){
             console.log("error", error)
-            e = error
+            e = error.message
         }
         return {
             x,
-            e
+            error:e
         }
     },
     JSPDF: async (body, params)=>{
@@ -175,7 +178,7 @@ const controller = {
         global.window = {document: {createElementNS: () => {return {}} }};
         global.navigator = {};
         global.btoa = () => {};
-
+        let FS
         console.log("JSING", body)
         // Default export is a4 paper, portrait, using millimeters for units
         try{
@@ -183,7 +186,12 @@ const controller = {
 
             const merger = new PDFMerger()
 
-            for (const product of body.products){
+            const result = await sql.query(PRODUCTS_BY_CODES(body.products, body.props.includeNoStock))
+            if (result.recordset.length===0) throw "invalid-codes"
+            const allProducts = result.recordset
+
+            for (const product of allProducts){
+                
                 
                 const doc = new jsPDF({
                     orientation: "landscape",
@@ -200,8 +208,8 @@ const controller = {
                 doc.setFontSize(16)
                 
                 //generate qr
-                const url = `http://${process.env.FRONT_IP}/#/consulta/${product.id}`
-                const filePath = `./public/${product.id}.png`
+                const url = `http://${process.env.FRONT_IP}/#/consulta/${product.ItemCode}`
+                const filePath = `./public/${product.ItemCode}.png`
   
                 if(!fs.existsSync(filePath)){
                     await qrcode.toFile(filePath,url, {
@@ -212,11 +220,14 @@ const controller = {
                         }
                     })
                 }
+                const refWhiteFile = fs.readFileSync("./public/ref-white.png")
+                const refWhite = new Uint8Array(refWhiteFile);
 
-
-                const qrFile = fs.readFileSync("./public/"+product.id+".png")
+                const qrFile = fs.readFileSync("./public/"+product.ItemCode+".png")
                 const qr = new Uint8Array(qrFile);
                 doc.addImage(qr, "PNG", leftEdge+0, 0, 5, 5)
+                doc.addImage(refWhite, "PNG", 3.6 , 2, 1.3, 1.3)
+
 
                 const logoFile = fs.readFileSync("./public/zeta-negro.png")
                 const logo = new Uint8Array(logoFile);
@@ -227,26 +238,46 @@ const controller = {
                 }
                 
                 doc.setFont("Helvetica", "bold")
-                doc.text(product.id, leftEdge +leftSpace+4, 1, "left")
-                doc.text(product.marca, rightEdge, 1, "right")
+                doc.setFontSize(16)
+                doc.text(product.ItemCode, leftEdge +leftSpace+4, 1, "left")
+                doc.setFontSize(16)
+
+                let marcaText = product.FirmName
+                let marcaLine = 1
+                let size = doc.getTextWidth(marcaText)
+                FS = 16 
+                while (size>3.2){
+                    if(FS<12){
+                        doc.setFontSize(14)
+                        marcaText = doc.splitTextToSize(marcaText, 3.3)
+                        marcaLine = 0.5
+                        break
+                    }
+                    
+                    FS -= 0.1
+                    doc.setFontSize(FS)
+                    size = doc.getTextWidth(marcaText)
+                    
+                }
+                doc.text(marcaText, rightEdge, marcaLine, "right")
+                doc.setFontSize(16)
                 
                 doc.setFont("Helvetica", "")
                 
                 
-                let line = doc.splitTextToSize(product.name, rightEdge - leftEdge - leftSpace -4)
-                let FS = 16
+                let line = doc.splitTextToSize(product.ItemName, rightEdge - leftEdge - leftSpace -4)
+                FS = 16
                 while (line.length > (FS>12?3:4)){
                     FS-=0.1
                     doc.setFontSize(FS)
-                    line = doc.splitTextToSize(product.name, rightEdge - leftEdge - leftSpace -4)
+                    line = doc.splitTextToSize(product.ItemName, rightEdge - leftEdge - leftSpace -4)
                 }
-                console.log("FS", FS)
                 doc.text(line, leftEdge+leftSpace +4, 1.8, "left")
                 doc.setFontSize(16)
                 
                 if(body.props.showPrices){
                     doc.setFont("Helvetica", "bold")
-                    if (product.price<=86){
+                    if (product.Price<=86){
                     doc.setFontSize(20)
                     }
                     doc.text("B.I:", leftEdge+leftSpace +4, 4, "left")
@@ -260,24 +291,24 @@ const controller = {
     
     
                     const showPrice = formatter.format(
-                    parseFloat(product.price).toFixed(2)
+                    parseFloat(product.Price).toFixed(2)
                     );
                     const showIVA = formatter.format(
-                    (parseFloat(product.price) * 0.16).toFixed(2)
+                    (parseFloat(product.Price) * 0.16).toFixed(2)
                     );
                     const showPMVP = formatter.format(
-                    (parseFloat(product.price) * 1.16).toFixed(2)
+                    (parseFloat(product.Price) * 1.16).toFixed(2)
                     );
                     
                     doc.text(showPrice, rightEdge,4, "right")
-                    doc.text(showIVA, rightEdge,5, "right")
-                    doc.text(showPMVP, rightEdge,6, "right")
+                    doc.text(product.TaxCodeAR == 'IVA_EXE'? 'EXENTO'  : showIVA, rightEdge,5, "right")
+                    doc.text(product.TaxCodeAR == 'IVA_EXE'? showPrice : showPMVP, rightEdge,6, "right")
                 }
 
                 
             
-                doc.save("./docs/"+product.id+".pdf")
-                await merger.add("./docs/"+product.id+".pdf");
+                doc.save("./docs/"+product.ItemCode+".pdf")
+                await merger.add("./docs/"+product.ItemCode+".pdf");
 
             }
             await merger.save(`./docs/${pdfName}.pdf`)
@@ -295,11 +326,11 @@ const controller = {
         delete global.btoa;
         }catch(error){
             console.log("what happened?", error)
-            e = error
+            e = error.message? error.message :error
         }
         return {
             res:"lol",
-            e
+            error:e
         }
     },
 
