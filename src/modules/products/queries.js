@@ -1,4 +1,4 @@
-export const PRODUCT_BY_CODE = function(ItemCode){
+export const PRODUCT_BY_CODE = function(ItemCode, includeNoActive=false, includeNoPrice=false, includeNoStock=false){
     ItemCode = ItemCode.replace(/[\[\]\(\)\;\+\:]/g, "")
     ItemCode = ItemCode.replace("'","''");
     return `
@@ -19,15 +19,17 @@ export const PRODUCT_BY_CODE = function(ItemCode){
         OMRC
             on OITM.FirmCode = OMRC.FirmCode
     where 
-        OITM.frozenFor = 'N'
-        and PriceList=3 
+        PriceList=3 
+        ${ includeNoActive ? '' : "and OITM.frozenFor = 'N'"}
+        ${ includeNoStock ? '' : 'and OITM.OnHand > 0'}
+        ${ includeNoPrice ? '' : 'and ITM1.Price > 0'}
         and OITM.ItemCode='${ItemCode}'`
 }
 
-export const PRODUCTS_BY_CODES = function(ItemCodes, includeNoStock = false){
+export const PRODUCTS_BY_CODES = function(ItemCodes, includeNoActive=false, includeNoPrice=false,  includeNoStock = false){
     let parsed = ''
     for (let ItemCode of ItemCodes){
-        ItemCode = ItemCode.replace(/[\[\]\(\)\;\+\:]/g, "")
+        ItemCode = ItemCode.replace(/[\[\]\;\+\:]/g, "")
         ItemCode = ItemCode.replace("'","''");
         parsed += "'"+ItemCode+"',"
     }
@@ -50,16 +52,15 @@ export const PRODUCTS_BY_CODES = function(ItemCodes, includeNoStock = false){
         OMRC
             on OITM.FirmCode = OMRC.FirmCode
     where 
-        OITM.frozenFor = 'N'
-        and PriceList=3 
+        PriceList=3 
+        ${ includeNoActive ? '' : "and OITM.frozenFor = 'N'"}
         ${ includeNoStock ? '' : 'and OITM.OnHand > 0'}
-
+        ${ includeNoPrice ? '' : 'and ITM1.Price > 0'}
         and OITM.ItemCode in (${parsed})`
 }
 
 
-export const FIRM_AND_COUNT = function(includeNoStock){
-    includeNoStock = includeNoStock ? true : false
+export const FIRM_AND_COUNT = function(includeNoActive=false, includeNoPrice=false,  includeNoStock = false){
 
     const query = `
     select
@@ -70,17 +71,22 @@ export const FIRM_AND_COUNT = function(includeNoStock){
     from OMRC 
     join OITM 
         on OMRC.FirmCode = OITM.FirmCode
+    join ITM1
+        on OITM.ItemCode = ITM1.ItemCode
     where
-        OITM.frozenFor = 'N'
-        ${ includeNoStock ? '' : 'and OITM.OnHand > 0'}
+        PriceList=3
+        ${ includeNoActive ? '' : "and OITM.frozenFor = 'N'"}
+        ${ includeNoStock ? '' :  `and OITM.OnHand > 0`}
+        ${ includeNoPrice ? '' :  `and ITM1.Price > 0`}
     group by
         OMRC.FirmCode,
         OMRC.FirmName 
     order by FirmName asc`
+    console.log(query)
     return query
 }
 
-export const PRODUCTS_BY_MARCA = function(FirmCode, includeNoStock){
+export const PRODUCTS_BY_MARCA = function(FirmCode, includeNoActive=false, includeNoPrice=false,  includeNoStock = false){
     FirmCode = FirmCode.replace(/[\[\]\(\)\;\+\:]/g, "")
     FirmCode = FirmCode.replace("'","''");
     includeNoStock = includeNoStock ? true : false
@@ -104,12 +110,14 @@ export const PRODUCTS_BY_MARCA = function(FirmCode, includeNoStock){
         OMRC
             on OITM.FirmCode = OMRC.FirmCode
     where 
-        OITM.frozenFor = 'N'
-        and PriceList=3
+        PriceList=3
         and OITM.FirmCode='${FirmCode}'
-        ${includeNoStock ? '' : 'and OITM.onHand > 0'}
+        ${ includeNoActive ? '' : "and OITM.frozenFor = 'N'"}
+        ${ includeNoStock ? '' : 'and OITM.OnHand > 0'}
+        ${ includeNoPrice ? '' : 'and ITM1.Price > 0'}
     order by ItemName asc
         `
+        console.log(query)
     return query
 }
 
@@ -197,6 +205,7 @@ export const PRODUCTS_BY_SEARCH = function(brandCode,search){
     where 
         OITM.frozenFor = 'N' 
         and onHand >0 
+        and Price > 0
         and PriceList='3' 
         and ${filter}
     group by

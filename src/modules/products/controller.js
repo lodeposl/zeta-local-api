@@ -46,7 +46,7 @@ const controller = {
         let error
         let marcas = []
         try{
-            const result = await sql.query(FIRM_AND_COUNT((params.includeNoStock === 'true' ? true : false)))
+            const result = await sql.query(FIRM_AND_COUNT(body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
             
             marcas = result.recordset
         }catch(err){
@@ -80,7 +80,7 @@ const controller = {
         let products = {}
         try{
             if (!params.code) throw  "code-required"
-            const result = await sql.query(PRODUCTS_BY_MARCA(params.code, (params.includeNoStock === 'true' ? true : false)))
+            const result = await sql.query(PRODUCTS_BY_MARCA(params.code, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
             // console.log("marca", result)
             if (result.recordset.length===0) throw "invalid-code"
             
@@ -120,7 +120,7 @@ const controller = {
 
         try{
             if (!params.code) throw "code-required"
-            const result = await sql.query(PRODUCT_BY_CODE(params.code))
+            const result = await sql.query(PRODUCT_BY_CODE(params.code,body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
             if (result.recordset.length===0) throw "invalid-code-"+params.code
             product = result.recordset[0]
 
@@ -186,7 +186,7 @@ const controller = {
 
             const merger = new PDFMerger()
 
-            const result = await sql.query(PRODUCTS_BY_CODES(body.products, body.props.includeNoStock))
+            const result = await sql.query(PRODUCTS_BY_CODES(body.products, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
             if (result.recordset.length===0) throw "invalid-codes"
             const allProducts = result.recordset
 
@@ -301,7 +301,11 @@ const controller = {
                     );
                     
                     doc.text(showPrice, rightEdge,4, "right")
+                    if(product.TaxCodeAR == 'IVA_EXE'){
+                        doc.setFontSize(15)
+                    }
                     doc.text(product.TaxCodeAR == 'IVA_EXE'? 'EXENTO'  : showIVA, rightEdge,5, "right")
+                    doc.setFontSize(20)
                     doc.text(product.TaxCodeAR == 'IVA_EXE'? showPrice : showPMVP, rightEdge,6, "right")
                 }
 
