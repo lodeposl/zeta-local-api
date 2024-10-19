@@ -46,7 +46,7 @@ const controller = {
         let error
         let marcas = []
         try{
-            const result = await sql.query(FIRM_AND_COUNT(body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
+            const result = await sql.query(FIRM_AND_COUNT(body.props.location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
             
             marcas = result.recordset
         }catch(err){
@@ -80,7 +80,7 @@ const controller = {
         let products = {}
         try{
             if (!params.code) throw  "code-required"
-            const result = await sql.query(PRODUCTS_BY_MARCA(params.code, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
+            const result = await sql.query(PRODUCTS_BY_MARCA(params.code, body.props.location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
             // console.log("marca", result)
             if (result.recordset.length===0) throw "invalid-code"
             
@@ -120,7 +120,7 @@ const controller = {
 
         try{
             if (!params.code) throw "code-required"
-            const result = await sql.query(PRODUCT_BY_CODE(params.code,body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
+            const result = await sql.query(PRODUCT_BY_CODE(params.code,body.props.location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
             if (result.recordset.length===0) throw "invalid-code-"+params.code
             product = result.recordset[0]
 
@@ -184,7 +184,7 @@ const controller = {
             const productData = {
 
             }
-            const result = await sql.query(PRODUCTS_BY_CODES(body.products, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
+            const result = await sql.query(PRODUCTS_BY_CODES(body.products, body.props.location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
             if (result.recordset.length===0) throw "invalid-codes"
             const allProducts = result.recordset
             for (const product of allProducts){
@@ -266,10 +266,15 @@ const controller = {
                 
                 doc.setFont("Helvetica", "")
                 
+                let lines = body.props.showPrices ? 3:4
+                let FSSTART =  body.props.showPrices? 16 : 32
+                FS =FSSTART
+                doc.setFontSize(FS)
+                
                 
                 let line = doc.splitTextToSize(product.ItemName, rightEdge - leftEdge - leftSpace -4)
-                FS = 16
-                while (line.length > (FS>12?3:4)){
+
+                while (line.length > (FS>FSSTART*0.75? lines: lines+1)){
                     FS-=0.1
                     doc.setFontSize(FS)
                     line = doc.splitTextToSize(product.ItemName, rightEdge - leftEdge - leftSpace -4)

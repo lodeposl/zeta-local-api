@@ -1,4 +1,4 @@
-export const PRODUCT_BY_CODE = function(ItemCode, includeNoActive=false, includeNoPrice=false, includeNoStock=false){
+export const PRODUCT_BY_CODE = function(ItemCode, location, includeNoActive=false, includeNoPrice=false, includeNoStock=false){
     ItemCode = ItemCode.replace(/[\[\]\(\)\;\+\:]/g, "")
     ItemCode = ItemCode.replace("'","''");
     return `
@@ -20,13 +20,14 @@ export const PRODUCT_BY_CODE = function(ItemCode, includeNoActive=false, include
             on OITM.FirmCode = OMRC.FirmCode
     where 
         PriceList=3 
+        ${ location=='TODOS'? '': `and OITM.U_CBM='${location}'`}
         ${ includeNoActive ? '' : "and OITM.frozenFor = 'N'"}
         ${ includeNoStock ? '' : 'and OITM.OnHand > 0'}
         ${ includeNoPrice ? '' : 'and ITM1.Price > 0'}
         and OITM.ItemCode='${ItemCode}'`
 }
 
-export const PRODUCTS_BY_CODES = function(ItemCodes, includeNoActive=false, includeNoPrice=false,  includeNoStock = false){
+export const PRODUCTS_BY_CODES = function(ItemCodes, location, includeNoActive=false, includeNoPrice=false,  includeNoStock = false){
     let parsed = ''
     for (let ItemCode of ItemCodes){
         ItemCode = ItemCode.replace(/[\[\]\;\+\:]/g, "")
@@ -53,6 +54,7 @@ export const PRODUCTS_BY_CODES = function(ItemCodes, includeNoActive=false, incl
             on OITM.FirmCode = OMRC.FirmCode
     where 
         PriceList=3 
+        ${ location=='TODOS'? '': `and OITM.U_CBM='${location}'`}
         ${ includeNoActive ? '' : "and OITM.frozenFor = 'N'"}
         ${ includeNoStock ? '' : 'and OITM.OnHand > 0'}
         ${ includeNoPrice ? '' : 'and ITM1.Price > 0'}
@@ -60,7 +62,7 @@ export const PRODUCTS_BY_CODES = function(ItemCodes, includeNoActive=false, incl
 }
 
 
-export const FIRM_AND_COUNT = function(includeNoActive=false, includeNoPrice=false,  includeNoStock = false){
+export const FIRM_AND_COUNT = function(location,includeNoActive=false, includeNoPrice=false,  includeNoStock = false){
 
     const query = `
     select
@@ -75,6 +77,7 @@ export const FIRM_AND_COUNT = function(includeNoActive=false, includeNoPrice=fal
         on OITM.ItemCode = ITM1.ItemCode
     where
         PriceList=3
+        ${ location=='TODOS'? '': `and OITM.U_CBM='${location}'`}
         ${ includeNoActive ? '' : "and OITM.frozenFor = 'N'"}
         ${ includeNoStock ? '' :  `and OITM.OnHand > 0`}
         ${ includeNoPrice ? '' :  `and ITM1.Price > 0`}
@@ -85,7 +88,7 @@ export const FIRM_AND_COUNT = function(includeNoActive=false, includeNoPrice=fal
     return query
 }
 
-export const PRODUCTS_BY_MARCA = function(FirmCode, includeNoActive=false, includeNoPrice=false,  includeNoStock = false){
+export const PRODUCTS_BY_MARCA = function(FirmCode, location, includeNoActive=false, includeNoPrice=false,  includeNoStock = false){
     FirmCode = FirmCode.replace(/[\[\]\(\)\;\+\:]/g, "")
     FirmCode = FirmCode.replace("'","''");
     includeNoStock = includeNoStock ? true : false
@@ -111,6 +114,7 @@ export const PRODUCTS_BY_MARCA = function(FirmCode, includeNoActive=false, inclu
     where 
         PriceList=3
         and OITM.FirmCode='${FirmCode}'
+        ${ location=='TODOS'? '': `and OITM.U_CBM='${location}'`}
         ${ includeNoActive ? '' : "and OITM.frozenFor = 'N'"}
         ${ includeNoStock ? '' : 'and OITM.OnHand > 0'}
         ${ includeNoPrice ? '' : 'and ITM1.Price > 0'}
