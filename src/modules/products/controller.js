@@ -180,7 +180,6 @@ const controller = {
         // Default export is a4 paper, portrait, using millimeters for units
         try{
             let pdfName = "Bulk "+ (new Date()+"").replace(/:/g,"-")
-
             const merger = new PDFMerger()
             const productData = {
 
@@ -237,7 +236,7 @@ const controller = {
                 doc.addImage(logo, "PNG", leftEdge + 1.2 , 4.7, 2.87, 1)
                 
                 if (body.props.showDate){
-                    doc.text(parsedDate(), leftEdge + 1.2, 6.2);
+                    doc.text(body.props.etiquetaDate, leftEdge + 1.2, 6.2);
                 }
                 
                 doc.setFont("Helvetica", "bold")
