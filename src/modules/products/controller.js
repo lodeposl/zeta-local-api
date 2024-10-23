@@ -17,15 +17,21 @@ const formatter = new Intl.NumberFormat("es-ES", {
     useGrouping: true,
   });
 
-function parsedDate(){
-    const today = new Date()
-    const day = (today.getDate()).toString()
-    const month = (today.getMonth()+1).toString()
-    const year = (today.getFullYear()).toString()
-    const date = `${day.length==0?"0"+day:day}/${month.length==0?"0"+month:month}/${year}`
-    return date
-  }
+function wordsForWords(words, split){
+    if (split.length==1){
+        if(split[0]==words.join(" ")){
+            return true
+        }
+    }
+    let splitInWords = true
 
+    for (const word of split){
+        if (words.indexOf(word)<0){
+            splitInWords = false
+        }
+    }
+    return splitInWords
+}
 
 const controller = {
     getAllMarcas: async (body, params)=>{
@@ -153,7 +159,7 @@ const controller = {
         let x
         let e
         try {
-            const api = axios.create( {baseURL: "http://192.168.0.105:4000"})
+            const api = axios.create( {baseURL: "http://localhost:4000"})
             const r = await api.post("products/jspdf", {
                 products:body.products,
                 props:body.props
@@ -206,7 +212,6 @@ const controller = {
                 const leftSpace = 1
                 const rightEdge = 12.5
                 
-                const price=861
                 doc.setFontSize(16)
                 
                 //generate qr
@@ -249,11 +254,27 @@ const controller = {
                 let size = doc.getTextWidth(marcaText)
                 FS = 16 
                 while (size>3.2){
-                    if(FS<12){
-                        doc.setFontSize(14)
-                        marcaText = doc.splitTextToSize(marcaText, 3.3)
-                        marcaLine = 0.5
-                        break
+                    if(FS<11){
+                        const words = marcaText.split(" ")
+
+                        if (words.length>1){
+                            FS = 14
+                            doc.setFontSize(FS)
+                            let inLines = doc.splitTextToSize(marcaText, 3.3)
+                            
+
+                            while (inLines.length>2 || !wordsForWords(words, inLines)){
+                                FS -= 0.1
+                                doc.setFontSize(FS)
+                                inLines = doc.splitTextToSize(marcaText, 3.3)
+                            }
+                            marcaText = inLines
+                            if (inLines.length!=1){
+                                marcaLine = 0.5
+                            }
+                            break
+                        }
+ 
                     }
                     
                     FS -= 0.1
