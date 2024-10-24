@@ -249,7 +249,7 @@ const controller = {
                 doc.text(product.ItemCode, leftEdge +leftSpace+4, 1, "left")
                 doc.setFontSize(16)
 
-                let marcaText = product.FirmName
+                let marcaText = product.FirmCode != -1? product.FirmName : ''
                 let marcaLine = 1
                 let size = doc.getTextWidth(marcaText)
                 FS = 16 
