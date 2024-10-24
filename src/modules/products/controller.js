@@ -87,7 +87,9 @@ const controller = {
         let products = {}
         try{
             if (!params.code) throw  "code-required"
-            const result = await sql.query(PRODUCTS_BY_MARCA(params.code, body.props.location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
+            const location = body.props.location? body.props.location: "TODOS"
+
+            const result = await sql.query(PRODUCTS_BY_MARCA(params.code, location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
             // console.log("marca", result)
             if (result.recordset.length===0) throw "invalid-code"
             
