@@ -52,7 +52,8 @@ const controller = {
         let error
         let marcas = []
         try{
-            const result = await sql.query(FIRM_AND_COUNT(body.props.location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
+            const location = body.props.location? body.props.location: "TODOS"
+            const result = await sql.query(FIRM_AND_COUNT(location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
             
             marcas = result.recordset
         }catch(err){
