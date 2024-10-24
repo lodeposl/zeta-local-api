@@ -19,7 +19,8 @@ export const PRODUCT_BY_CODE = function(ItemCode, location, includeNoActive=fals
         OMRC
             on OITM.FirmCode = OMRC.FirmCode
     where 
-        PriceList=3 
+        PriceList=3
+        and OITM.SellItem='Y'
         ${ location=='TODOS'? '': `and OITM.U_CBM='${location}'`}
         ${ includeNoActive ? '' : "and OITM.frozenFor = 'N'"}
         ${ includeNoStock ? '' : 'and OITM.OnHand > 0'}
@@ -54,6 +55,7 @@ export const PRODUCTS_BY_CODES = function(ItemCodes, location, includeNoActive=f
             on OITM.FirmCode = OMRC.FirmCode
     where 
         PriceList=3 
+        and OITM.SellItem='Y'
         ${ location=='TODOS'? '': `and OITM.U_CBM='${location}'`}
         ${ includeNoActive ? '' : "and OITM.frozenFor = 'N'"}
         ${ includeNoStock ? '' : 'and OITM.OnHand > 0'}
@@ -77,6 +79,7 @@ export const FIRM_AND_COUNT = function(location,includeNoActive=false, includeNo
         on OITM.ItemCode = ITM1.ItemCode
     where
         PriceList=3
+        and OITM.SellItem='Y'
         ${ location=='TODOS'? '': `and OITM.U_CBM='${location}'`}
         ${ includeNoActive ? '' : "and OITM.frozenFor = 'N'"}
         ${ includeNoStock ? '' :  `and OITM.OnHand > 0`}
@@ -113,6 +116,7 @@ export const PRODUCTS_BY_MARCA = function(FirmCode, location, includeNoActive=fa
             on OITM.FirmCode = OMRC.FirmCode
     where 
         PriceList=3
+        and OITM.SellItem='Y'
         and OITM.FirmCode='${FirmCode}'
         ${ location=='TODOS'? '': `and OITM.U_CBM='${location}'`}
         ${ includeNoActive ? '' : "and OITM.frozenFor = 'N'"}
@@ -150,7 +154,8 @@ export const ALL_PRODUCTS = function(){
             ITM1 
                 on OITM.ItemCode = ITM1.ItemCode 
         where 
-            PriceList=3 
+            PriceList=3
+            and OITM.SellItem='Y'
     `
     return query
 
@@ -203,7 +208,8 @@ export const PRODUCTS_BY_SEARCH = function(brandCode,search){
 	join OMRC 
         on OMRC.FirmCode = OITM.FirmCode
     where 
-        OITM.frozenFor = 'N' 
+        OITM.frozenFor = 'N'
+        and OITM.SellItem='Y'
         and onHand >0 
         and Price > 0
         and PriceList='3' 
