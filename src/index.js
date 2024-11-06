@@ -8,9 +8,11 @@ import userRouter from "./modules/user/router.js"
 import productsRouter from "./modules/products/router.js"
 import ticketsRouter from "./modules/tickets/router.js"
 import { initJobs } from "./remote/index.js"
+import { initRedis } from "./redis.js"
 
 async function init (){
     // await initMongo()
+    await initRedis()
     const app = express()
     app.use(cors())
     app.use(express.static("public"))
