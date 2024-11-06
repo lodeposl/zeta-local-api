@@ -12,7 +12,12 @@ import { initRedis } from "./redis.js"
 
 async function init (){
     // await initMongo()
-    await initRedis()
+
+    console.log("print", process.env.DO_PRINTING)
+    if (process.env.DO_PRINTING=="true"){
+        await initRedis()
+    }
+
     const app = express()
     app.use(cors())
     app.use(express.static("public"))
