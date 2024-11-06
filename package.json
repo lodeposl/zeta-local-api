@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/lodeposl/zeta-local-api#readme",
   "dependencies": {
-    "amqplib": "^0.10.3",
+    "amqplib": "^0.10.4",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",

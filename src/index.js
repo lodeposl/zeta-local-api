@@ -8,10 +8,12 @@ import userRouter from "./modules/user/router.js"
 import productsRouter from "./modules/products/router.js"
 import ticketsRouter from "./modules/tickets/router.js"
 import { initJobs } from "./remote/index.js"
+import { initRabbitmq } from "./rabbitmq.js"
 
 async function init (){
     // await initMongo()
     const app = express()
+    await initRabbitmq()
     app.use(cors())
     app.use(express.static("public"))
     app.use(express.static("front"))
@@ -24,6 +26,7 @@ async function init (){
     app.listen(process.env.PORT, ()=>{
         console.log(`Listening on:${process.env.PORT}`)
     })
+
 
     setTimeout(()=>{
         initJobs()
