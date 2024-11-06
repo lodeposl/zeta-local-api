@@ -351,10 +351,14 @@ const controller = {
         let x
         let e
         try {
-            const client = await createClient(process.env.REDIS_URL)
+            const client = await createClient({
+                url: process.env.REDIS_URL
+              })
             .on('error', err => console.log('Redis Client Error',  err))
             .connect();
-            const response = await createClient(process.env.REDIS_URL)
+            const response = await createClient({
+                url: process.env.REDIS_URL
+              })
             .on('error', err => console.log('Redis Client Error',  err))
             .connect();
             const promise = new Promise((resolve,reject)=>{
