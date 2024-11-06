@@ -35,6 +35,7 @@ function wordsForWords(words, split){
 
 async function JSPDF (body, params){
     let e
+    let product = "lol"
     global.window = {document: {createElementNS: () => {return {}} }};
     global.navigator = {};
     global.btoa = () => {};
@@ -48,6 +49,9 @@ async function JSPDF (body, params){
         }
         const result = await sql.query(PRODUCTS_BY_CODES(body.products, body.props.location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
         if (result.recordset.length===0) throw "invalid-codes"
+        if (body.products.length==1){
+            product=result.recordset[0]
+        }
         const allProducts = result.recordset
         for (const product of allProducts){
             productData[product.ItemCode] = product
@@ -201,14 +205,14 @@ async function JSPDF (body, params){
         }
         await merger.save(`./docs/${pdfName}.pdf`)
 
-    await new Promise((resolve, reject)=>{
-        ptp.print("./docs/"+pdfName+".pdf", {
-            orientation:"landscape",
-            scale:"shrink",
+    // await new Promise((resolve, reject)=>{
+    //     ptp.print("./docs/"+pdfName+".pdf", {
+    //         orientation:"landscape",
+    //         scale:"shrink",
             
-            // printDialog:true
-        }).then(resolve).catch(reject);
-    })
+    //         // printDialog:true
+    //     }).then(resolve).catch(reject);
+    // })
     delete global.window;
     delete global.navigator;
     delete global.btoa;
@@ -217,7 +221,7 @@ async function JSPDF (body, params){
         e = error.message? error.message :error
     }
     return {
-        res:"lol",
+        res:product,
         error:e
     }
 }
