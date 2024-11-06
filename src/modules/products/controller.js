@@ -205,14 +205,14 @@ async function JSPDF (body, params){
         }
         await merger.save(`./docs/${pdfName}.pdf`)
 
-    // await new Promise((resolve, reject)=>{
-    //     ptp.print("./docs/"+pdfName+".pdf", {
-    //         orientation:"landscape",
-    //         scale:"shrink",
+    await new Promise((resolve, reject)=>{
+        ptp.print("./docs/"+pdfName+".pdf", {
+            orientation:"landscape",
+            scale:"shrink",
             
-    //         // printDialog:true
-    //     }).then(resolve).catch(reject);
-    // })
+            // printDialog:true
+        }).then(resolve).catch(reject);
+    })
     delete global.window;
     delete global.navigator;
     delete global.btoa;
