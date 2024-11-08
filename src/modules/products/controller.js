@@ -6,7 +6,7 @@ import fs from "fs"
 import ptp from "pdf-to-printer";
 import axios from "axios"
 
-import { MARCAS, PRODUCT_BY_CODE, FIRM_AND_COUNT, PRODUCTS_BY_MARCA, PRODUCTS_BY_SEARCH, PRODUCTS_BY_CODES } from "./queries.js"
+import { MARCAS, PRODUCT_BY_CODE, FIRM_AND_COUNT, PRODUCTS_BY_MARCA, PRODUCTS_BY_SEARCH, PRODUCTS_BY_CODES, PRICE_LISTS } from "./queries.js"
 import PDFMerger from "pdf-merger-js";
 import { jsPDF } from "jspdf";
 import { createClient } from 'redis';
@@ -47,7 +47,7 @@ async function JSPDF (body, params){
         const productData = {
 
         }
-        const result = await sql.query(PRODUCTS_BY_CODES(body.products, body.props.location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
+        const result = await sql.query(PRODUCTS_BY_CODES(body.products, body.props.location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList))
         if (result.recordset.length===0) throw "invalid-codes"
         if (body.products.length==1){
             product=result.recordset[0]
@@ -227,6 +227,20 @@ async function JSPDF (body, params){
 }
 
 const controller = {
+    getPriceLists: async(body, params)=>{
+        let error
+        let lists = []
+        try{
+            const result = await sql.query(PRICE_LISTS())
+            lists = result.recordset
+        }catch(error){
+            error = error.message ? error.message : error
+        }
+        return {
+            error,
+            lists
+        }
+    },
     getAllMarcas: async (body, params)=>{
         let error
         let marcas = []
@@ -245,8 +259,9 @@ const controller = {
         let error
         let marcas = []
         try{
+            //console.log(body)z
             const location = body.props.location? body.props.location: "TODOS"
-            const result = await sql.query(FIRM_AND_COUNT(location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
+            const result = await sql.query(FIRM_AND_COUNT(location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList))
             
             marcas = result.recordset
         }catch(err){
@@ -282,7 +297,7 @@ const controller = {
             if (!params.code) throw  "code-required"
             const location = body.props.location? body.props.location: "TODOS"
 
-            const result = await sql.query(PRODUCTS_BY_MARCA(params.code, location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
+            const result = await sql.query(PRODUCTS_BY_MARCA(params.code, location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList))
             // console.log("marca", result)
             if (result.recordset.length===0) throw "invalid-code"
             
@@ -322,7 +337,7 @@ const controller = {
 
         try{
             if (!params.code) throw "code-required"
-            const result = await sql.query(PRODUCT_BY_CODE(params.code,body.props.location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock))
+            const result = await sql.query(PRODUCT_BY_CODE(params.code,body.props.location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList))
             if (result.recordset.length===0) throw "invalid-code-"+params.code
             product = result.recordset[0]
 

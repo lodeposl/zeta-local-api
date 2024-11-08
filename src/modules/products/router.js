@@ -11,6 +11,7 @@ productsRouter.post("/byMarca/:code", isAuth, checkPermissions([],["imprimir-eti
 productsRouter.get("/bySearch/:brand/:search", isAuth, checkPermissions(["visor-de-precios"]), callController(controller.productsBySearch))
 productsRouter.post("/redirect",  callController(controller.redirect))
 productsRouter.post("/jspdf",  callController(controller.JSPDF))
+productsRouter.get("/price-lists",  callController(controller.getPriceLists))
 
 
 
