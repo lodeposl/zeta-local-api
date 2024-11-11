@@ -5,6 +5,9 @@ export const PRICE_LISTS = function(){
         ListName
     from
         OPLN
+    where 
+        validFor='Y'
+        and U_LISTA_DEVENTA = 'Y'
     order by ListNum asc
     `
     return sql
