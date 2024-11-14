@@ -112,6 +112,7 @@ async function JSPDF (body, params){
             let marcaText = product.FirmCode != -1? product.FirmName : ''
             let marcaLine = 1
             let size = doc.getTextWidth(marcaText)
+            
             FS = 16 
             while (size>3.2){
                 if(FS<11){
@@ -147,15 +148,13 @@ async function JSPDF (body, params){
             
             doc.setFont("Helvetica", "")
             
-            let lines = body.props.showPrices ? 3:4
-            let FSSTART =  body.props.showPrices? 16 : 32
-            FS =FSSTART
+            FS =  body.props.showPrices? 16 : 32
             doc.setFontSize(FS)
             
             
             let line = doc.splitTextToSize(product.ItemName, rightEdge - leftEdge - leftSpace -4)
 
-            while (line.length > (FS>FSSTART*0.75? lines: lines+1)){
+            while (line.length * FS > (body.props.showPrices?50:120)){
                 FS-=0.1
                 doc.setFontSize(FS)
                 line = doc.splitTextToSize(product.ItemName, rightEdge - leftEdge - leftSpace -4)
