@@ -199,7 +199,11 @@ async function JSPDF (body, params){
             
         
             doc.save("./docs/"+product.ItemCode+".pdf")
-            await merger.add("./docs/"+product.ItemCode+".pdf");
+            let i = 0
+            while (i<body.props.copies){
+                await merger.add("./docs/"+product.ItemCode+".pdf");
+                i++
+            }
 
         }
         await merger.save(`./docs/${pdfName}.pdf`)
