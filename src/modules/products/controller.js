@@ -6,7 +6,7 @@ import fs from "fs"
 import ptp from "pdf-to-printer";
 import axios from "axios"
 
-import { MARCAS, PRODUCT_BY_CODE, FIRM_AND_COUNT, PRODUCTS_BY_MARCA, PRODUCTS_BY_SEARCH, PRODUCTS_BY_CODES, PRICE_LISTS } from "./queries.js"
+import { MARCAS, PRODUCT_BY_CODE, FIRM_AND_COUNT, PRODUCTS_BY_MARCA, PRODUCTS_BY_SEARCH, PRODUCTS_BY_CODES, PRICE_LISTS, PROVIDER_AND_COUNT, PRODUCTS_BY_PROVEEDOR } from "./queries.js"
 import PDFMerger from "pdf-merger-js";
 import { jsPDF } from "jspdf";
 import { createClient } from 'redis';
@@ -420,7 +420,45 @@ const controller = {
             error:e
         }
     },
-    JSPDF: JSPDF
+    JSPDF: JSPDF,
+    queryProveedores:async(body, params)=>{
+        let error
+        let proveedores = []
+        try{
+            //console.log(body)z
+            const location = body.props.location? body.props.location: "TODOS"
+            const result = await sql.query(PROVIDER_AND_COUNT(location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList))
+            
+            proveedores = result.recordset
+        }catch(err){
+            error = err
+        }
+        return {
+            error,
+            proveedores
+        }
+    },
+    productsByProveedor:async (body, params)=>{
+        let error
+        let products = {}
+        try{
+            if (!params.code) throw  "code-required"
+            const location = body.props.location? body.props.location: "TODOS"
+
+            const result = await sql.query(PRODUCTS_BY_PROVEEDOR(params.code, location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList))
+            // console.log("marca", result)
+            if (result.recordset.length===0) throw "invalid-code"
+            
+            products = result.recordset
+        }catch(err){
+            error = err
+        }
+        return {
+            error,
+            products
+        }
+
+    },
 
 }
 export {JSPDF}

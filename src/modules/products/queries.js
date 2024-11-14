@@ -240,3 +240,74 @@ export const PRODUCTS_BY_SEARCH = function(brandCode,search){
     `
     return query
 }
+
+export const PROVIDER_AND_COUNT = function(location,includeNoActive=false, includeNoPrice=false,  includeNoStock = false, priceList=2){
+
+    const query = `
+    select
+        OCRD.CardCode,
+        OCRD.CardName,
+        COUNT(OCRD.CardCode) amountProducts
+        
+    from OCRD
+    join OITM 
+        on OCRD.CardCode = OITM.CardCode
+    join ITM1
+        on OITM.ItemCode = ITM1.ItemCode
+    where
+        PriceList=${priceList}
+        and OITM.SellItem='Y'
+        and OCRD.CardType = 'S'
+        ${ location=='TODOS'? '': `and OITM.U_CBM='${location}'`}
+        ${ includeNoActive ? '' : "and OITM.frozenFor = 'N'"}
+        ${ includeNoStock ? '' :  `and OITM.OnHand > 0`}
+        ${ includeNoPrice ? '' :  `and ITM1.Price > 0`}
+    group by
+        OCRD.CardCode,
+        OCRD.CardName 
+    order by CardName asc`
+    return query
+}
+
+export const PRODUCTS_BY_PROVEEDOR = function(CardCode, location, includeNoActive=false, includeNoPrice=false,  includeNoStock = false, priceList=2){
+    CardCode = CardCode.replace(/[\[\]\(\)\;\+\:]/g, "")
+    CardCode = CardCode.replace("'","''");
+    includeNoStock = includeNoStock ? true : false
+    const query = `
+    select 
+        OITM.ItemCode,
+        ItemName,
+        onHand,
+        U_NIV_I,
+        Price,
+        OMRC.FirmName,
+        OMRC.FirmCode,
+        OITM.ItmsGrpCod,
+        OITM.TaxCodeAR,
+        OCRD.CardCode,
+        OCRD.CardName
+    from 
+        OITM 
+    join 
+        ITM1 
+            on OITM.ItemCode = ITM1.ItemCode 
+    join OCRD 
+        on OCRD.CardCode = OITM.CardCode
+    join
+        OMRC
+            on OITM.FirmCode = OMRC.FirmCode
+    where 
+        PriceList=${priceList}
+        and OITM.SellItem='Y'
+        and OCRD.CardCode='${CardCode}'
+        and OCRD.CardType = 'S'
+
+        ${ location=='TODOS'? '': `and OITM.U_CBM='${location}'`}
+        ${ includeNoActive ? '' : "and OITM.frozenFor = 'N'"}
+        ${ includeNoStock ? '' : 'and OITM.OnHand > 0'}
+        ${ includeNoPrice ? '' : 'and ITM1.Price > 0'}
+    order by OITM.ItemName asc
+        `
+
+    return query
+}
