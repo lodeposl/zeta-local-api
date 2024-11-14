@@ -136,7 +136,7 @@ export const PRODUCTS_BY_MARCA = function(FirmCode, location, includeNoActive=fa
         ${ includeNoActive ? '' : "and OITM.frozenFor = 'N'"}
         ${ includeNoStock ? '' : 'and OITM.OnHand > 0'}
         ${ includeNoPrice ? '' : 'and ITM1.Price > 0'}
-    order by OITM.ItemName asc
+    order by OITM.ItemCode asc
         `
     return query
 }
@@ -306,7 +306,7 @@ export const PRODUCTS_BY_PROVEEDOR = function(CardCode, location, includeNoActiv
         ${ includeNoActive ? '' : "and OITM.frozenFor = 'N'"}
         ${ includeNoStock ? '' : 'and OITM.OnHand > 0'}
         ${ includeNoPrice ? '' : 'and ITM1.Price > 0'}
-    order by OITM.ItemName asc
+    order by OITM.ItemCode asc
         `
 
     return query
