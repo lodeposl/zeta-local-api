@@ -311,3 +311,57 @@ export const PRODUCTS_BY_PROVEEDOR = function(CardCode, location, includeNoActiv
 
     return query
 }
+
+export const FACT_AND_COUNT = function(){
+    const query = `
+        select top 200
+            DocNum, 
+            CardName, 
+            NumAtCard,
+            count(DocNum) as amountProducts 
+        from 
+            opch 
+        join 
+            pch1 
+        on 
+            DocNum=BaseRef 
+        where 
+            opch.series = '14' 
+        group by 
+            DocNum, 
+            NumAtCard,
+            CardName 
+        order by DocNum desc`
+        return query
+}
+
+export const PRODUCTS_BY_FACTURA = function(BaseRef, priceList=2){
+    const query = `
+    select 
+        OITM.ItemCode,
+        OITM.ItemName,
+        onHand,
+        U_NIV_I,
+        ITM1.Price,
+        OMRC.FirmName,
+        OMRC.FirmCode,
+        OITM.ItmsGrpCod,
+        OITM.TaxCodeAR
+    from 
+        OITM 
+    join 
+        ITM1 
+            on OITM.ItemCode = ITM1.ItemCode 
+    join PCH1 
+        on PCH1.ItemCode = OITM.ItemCode
+    join
+        OMRC
+            on OITM.FirmCode = OMRC.FirmCode
+    where 
+        PriceList=${priceList}
+        and pch1.BaseRef='${BaseRef}'
+
+    order by OITM.ItemCode asc
+        `
+        return query
+}

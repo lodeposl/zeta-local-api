@@ -6,7 +6,7 @@ import fs from "fs"
 import ptp from "pdf-to-printer";
 import axios from "axios"
 
-import { MARCAS, PRODUCT_BY_CODE, FIRM_AND_COUNT, PRODUCTS_BY_MARCA, PRODUCTS_BY_SEARCH, PRODUCTS_BY_CODES, PRICE_LISTS, PROVIDER_AND_COUNT, PRODUCTS_BY_PROVEEDOR } from "./queries.js"
+import { MARCAS, PRODUCT_BY_CODE, FIRM_AND_COUNT, PRODUCTS_BY_MARCA, PRODUCTS_BY_SEARCH, PRODUCTS_BY_CODES, PRICE_LISTS, PROVIDER_AND_COUNT, PRODUCTS_BY_PROVEEDOR, FACT_AND_COUNT, PRODUCTS_BY_FACTURA } from "./queries.js"
 import PDFMerger from "pdf-merger-js";
 import { jsPDF } from "jspdf";
 import { createClient } from 'redis';
@@ -446,6 +446,43 @@ const controller = {
             const location = body.props.location? body.props.location: "TODOS"
 
             const result = await sql.query(PRODUCTS_BY_PROVEEDOR(params.code, location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList))
+            // console.log("marca", result)
+            if (result.recordset.length===0) throw "invalid-code"
+            
+            products = result.recordset
+        }catch(err){
+            error = err
+        }
+        return {
+            error,
+            products
+        }
+
+    },
+    queryFacturas:async(body, params)=>{
+        let error
+        let facturas = []
+        try{
+            //console.log(body)z
+            const location = body.props.location? body.props.location: "TODOS"
+            const result = await sql.query(FACT_AND_COUNT())
+            
+            facturas = result.recordset
+        }catch(err){
+            error = err
+        }
+        return {
+            error,
+            facturas
+        }
+    },
+    productsByFactura:async (body, params)=>{
+        let error
+        let products = {}
+        try{
+            if (!params.code) throw  "code-required"
+
+            const result = await sql.query(PRODUCTS_BY_FACTURA(params.code, body.props.priceList))
             // console.log("marca", result)
             if (result.recordset.length===0) throw "invalid-code"
             
