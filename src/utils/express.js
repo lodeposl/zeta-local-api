@@ -10,6 +10,17 @@ export function callController(controller){
     }
 }
 
+export function showData(isDev){
+    return (req, res, next)=>{
+        console.log()
+        if (isDev){
+            console.log("body", req.body)
+            console.log("params", req.params)
+        }
+        next()
+    }
+}
+
 export function isAuth(req,res,next){
     let error
     let auth

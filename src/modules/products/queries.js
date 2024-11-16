@@ -312,10 +312,11 @@ export const PRODUCTS_BY_PROVEEDOR = function(CardCode, location, includeNoActiv
     return query
 }
 
-export const FACT_AND_COUNT = function(){
+export const FACT_AND_COUNT = function(props){
     const query = `
         select top 200
             DocNum, 
+            opch.DocEntry,
             CardName, 
             NumAtCard,
 			(max(pch1.BaseLine) + 1) as amountProducts
@@ -328,15 +329,18 @@ export const FACT_AND_COUNT = function(){
         where 
             opch.series = '14' 
             and opch.DocType='I'
+            and opch.DocDate>='${props.minDay}'
+			and opch.DocDate<'${props.maxDay}'
         group by 
             DocNum, 
+            opch.DocEntry,
             NumAtCard,
             CardName
         order by DocNum desc`
         return query
 }
 
-export const PRODUCTS_BY_FACTURA = function(BaseRef, priceList=2){
+export const PRODUCTS_BY_FACTURA = function(DocEntry, priceList=2){
     const query = `
     select 
         OITM.ItemCode,
@@ -360,7 +364,7 @@ export const PRODUCTS_BY_FACTURA = function(BaseRef, priceList=2){
             on OITM.FirmCode = OMRC.FirmCode
     where 
         PriceList=${priceList}
-        and pch1.BaseRef='${BaseRef}'
+        and pch1.DocEntry='${DocEntry}'
 
     order by OITM.ItemCode asc
         `

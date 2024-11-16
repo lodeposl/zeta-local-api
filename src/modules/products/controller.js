@@ -47,7 +47,7 @@ async function JSPDF (body, params){
         const productData = {
 
         }
-        const result = await sql.query(PRODUCTS_BY_CODES(body.products, body.props.location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList))
+        const result = await sql.query(PRODUCTS_BY_CODES(body.products, body.props.location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList.value))
         if (result.recordset.length===0) throw "invalid-codes"
         if (body.products.length==1){
             product=result.recordset[0]
@@ -264,7 +264,7 @@ const controller = {
         try{
             //console.log(body)z
             const location = body.props.location? body.props.location: "TODOS"
-            const result = await sql.query(FIRM_AND_COUNT(location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList))
+            const result = await sql.query(FIRM_AND_COUNT(location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList.value))
             
             marcas = result.recordset
         }catch(err){
@@ -280,7 +280,7 @@ const controller = {
         let product = {}
         try{
             if (!params.code) throw  "code-required"
-            const result = await sql.query(PRODUCT_BY_CODE(params.code, 'TODOS', true, true, true, 2))
+            const result = await sql.query(PRODUCT_BY_CODE(params.code, 'TODOS', true, true, true, 3))
             if (result.recordset.length===0) throw "invalid-code"
             
             product = result.recordset[0]
@@ -300,7 +300,7 @@ const controller = {
             if (!params.code) throw  "code-required"
             const location = body.props.location? body.props.location: "TODOS"
 
-            const result = await sql.query(PRODUCTS_BY_MARCA(params.code, location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList))
+            const result = await sql.query(PRODUCTS_BY_MARCA(params.code, location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList.value))
             // console.log("marca", result)
             if (result.recordset.length===0) throw "invalid-code"
             
@@ -340,7 +340,7 @@ const controller = {
 
         try{
             if (!params.code) throw "code-required"
-            const result = await sql.query(PRODUCT_BY_CODE(params.code,body.props.location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList))
+            const result = await sql.query(PRODUCT_BY_CODE(params.code,body.props.location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList.value))
             if (result.recordset.length===0) throw "invalid-code-"+params.code
             product = result.recordset[0]
 
@@ -427,7 +427,7 @@ const controller = {
         try{
             //console.log(body)z
             const location = body.props.location? body.props.location: "TODOS"
-            const result = await sql.query(PROVIDER_AND_COUNT(location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList))
+            const result = await sql.query(PROVIDER_AND_COUNT(location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList.value))
             
             proveedores = result.recordset
         }catch(err){
@@ -445,7 +445,7 @@ const controller = {
             if (!params.code) throw  "code-required"
             const location = body.props.location? body.props.location: "TODOS"
 
-            const result = await sql.query(PRODUCTS_BY_PROVEEDOR(params.code, location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList))
+            const result = await sql.query(PRODUCTS_BY_PROVEEDOR(params.code, location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList.value))
             // console.log("marca", result)
             if (result.recordset.length===0) throw "invalid-code"
             
@@ -465,7 +465,7 @@ const controller = {
         try{
             //console.log(body)z
             const location = body.props.location? body.props.location: "TODOS"
-            const result = await sql.query(FACT_AND_COUNT())
+            const result = await sql.query(FACT_AND_COUNT(body.props))
             
             facturas = result.recordset
         }catch(err){
@@ -482,7 +482,7 @@ const controller = {
         try{
             if (!params.code) throw  "code-required"
 
-            const result = await sql.query(PRODUCTS_BY_FACTURA(params.code, body.props.priceList))
+            const result = await sql.query(PRODUCTS_BY_FACTURA(params.code, body.props.priceList.value))
             // console.log("marca", result)
             if (result.recordset.length===0) throw "invalid-code"
             
