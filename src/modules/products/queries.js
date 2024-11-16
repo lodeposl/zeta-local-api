@@ -318,19 +318,20 @@ export const FACT_AND_COUNT = function(){
             DocNum, 
             CardName, 
             NumAtCard,
-            count(DocNum) as amountProducts 
+			(max(pch1.BaseLine) + 1) as counted
         from 
             opch 
         join 
             pch1 
         on 
-            DocNum=BaseRef 
+            opch.DocEntry=pch1.DocEntry 
         where 
             opch.series = '14' 
+            and opch.DocType='I'
         group by 
             DocNum, 
             NumAtCard,
-            CardName 
+            CardName
         order by DocNum desc`
         return query
 }
