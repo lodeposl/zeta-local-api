@@ -318,7 +318,7 @@ export const FACT_AND_COUNT = function(){
             DocNum, 
             CardName, 
             NumAtCard,
-			(max(pch1.BaseLine) + 1) as counted
+			(max(pch1.BaseLine) + 1) as amountProducts
         from 
             opch 
         join 
