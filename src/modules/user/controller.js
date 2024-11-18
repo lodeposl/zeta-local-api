@@ -5,6 +5,39 @@ import bcrypt from "bcrypt"
 import sqlite3 from "sqlite3"
 const sqlite = new sqlite3.Database("sqlite.db")
 
+export async function getUser(userName){
+  return new Promise((resolve, reject)=>{
+    let sqlite_user
+  
+    sqlite.serialize(()=>{
+      sqlite.get(`select rowid, name, password, role from users where name = '${ userName }'`, (err,user)=>{
+        if (err){
+          console.log("user err", err)
+          reject(err)
+          return
+        }
+        sqlite_user = {
+          ...user,
+          permissions:[]
+        }
+        sqlite.all(`select * from user_permissions join permissions on user_permissions.permision=permissions.rowid where user ='${user.rowid}'`,(err, permissions)=>{
+          if (err){
+            reject(err)
+            return
+          }
+          for (const perm of permissions){
+            sqlite_user.permissions.push(perm.name)
+          }
+          resolve(sqlite_user)
+        })       
+      })
+    })
+  }).catch((err)=>{
+    console.log("catched", err)
+    throw err
+  })
+}
+
 const controller = {
     login:async ({userName, password},params)=>{
         let error

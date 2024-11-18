@@ -11,6 +11,8 @@ import PDFMerger from "pdf-merger-js";
 import { jsPDF } from "jspdf";
 import { createClient } from 'redis';
 
+import { getUser } from "../user/controller.js";
+
 const formatter = new Intl.NumberFormat("es-ES", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -213,7 +215,6 @@ async function JSPDF (body, params){
             orientation:"landscape",
             scale:"shrink",
             
-            // printDialog:true
         }).then(resolve).catch(reject);
     })
     delete global.window;
@@ -262,7 +263,6 @@ const controller = {
         let error
         let marcas = []
         try{
-            //console.log(body)z
             const location = body.props.location? body.props.location: "TODOS"
             const result = await sql.query(FIRM_AND_COUNT(location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList.value))
             
@@ -301,7 +301,6 @@ const controller = {
             const location = body.props.location? body.props.location: "TODOS"
 
             const result = await sql.query(PRODUCTS_BY_MARCA(params.code, location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList.value))
-            // console.log("marca", result)
             if (result.recordset.length===0) throw "invalid-code"
             
             products = result.recordset
@@ -319,9 +318,7 @@ const controller = {
         let products = {}
         try{
             if (!params.search) throw  "search-required"
-            // console.log("entered?", params)
             const result = await sql.query(PRODUCTS_BY_SEARCH(params.brand=="none"?false:params.brand,params.search))
-            // console.log("recprd", result)            
             products = result.recordset
         }catch(err){
             error = err
@@ -373,6 +370,12 @@ const controller = {
         let x
         let e
         try {
+            if (body.props.priceList.value!=2){
+                const user = await getUser(body.auth.name)
+                if (user.permissions.indexOf('cambiar-listado-precios')<0){
+                    throw "cant-change-list"
+                }
+            }
             const client = await createClient({
                 url: process.env.REDIS_URL
               })
@@ -413,7 +416,7 @@ const controller = {
             // }
         }catch(error){
             console.log("error", error)
-            e = error.message
+            e = error.message ? error.message: error
         }
         return {
             x,
@@ -425,7 +428,6 @@ const controller = {
         let error
         let proveedores = []
         try{
-            //console.log(body)z
             const location = body.props.location? body.props.location: "TODOS"
             const result = await sql.query(PROVIDER_AND_COUNT(location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList.value))
             
@@ -446,7 +448,6 @@ const controller = {
             const location = body.props.location? body.props.location: "TODOS"
 
             const result = await sql.query(PRODUCTS_BY_PROVEEDOR(params.code, location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList.value))
-            // console.log("marca", result)
             if (result.recordset.length===0) throw "invalid-code"
             
             products = result.recordset
@@ -463,7 +464,6 @@ const controller = {
         let error
         let facturas = []
         try{
-            //console.log(body)z
             const location = body.props.location? body.props.location: "TODOS"
             const result = await sql.query(FACT_AND_COUNT(body.props))
             
@@ -483,7 +483,6 @@ const controller = {
             if (!params.code) throw  "code-required"
 
             const result = await sql.query(PRODUCTS_BY_FACTURA(params.code, body.props.priceList.value))
-            // console.log("marca", result)
             if (result.recordset.length===0) throw "invalid-code"
             
             products = result.recordset

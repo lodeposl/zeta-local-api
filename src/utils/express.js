@@ -12,7 +12,6 @@ export function callController(controller){
 
 export function showData(isDev){
     return (req, res, next)=>{
-        console.log()
         if (isDev){
             console.log("body", req.body)
             console.log("params", req.params)
@@ -53,7 +52,6 @@ export function checkRole(roles){
 export function checkPermissions($and, $or=[]){
     return (req, res, next)=>{
         let hasSomeOr = $or.length==0? true : false
-
         for (const permReq of $or){
             if(req.body.auth.permissions.indexOf(permReq)>=0){
                 hasSomeOr = true

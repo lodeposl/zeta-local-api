@@ -8,7 +8,8 @@ function task (){
     
         const stmt = db.prepare("INSERT INTO permissions VALUES (?)");
         // stmt.run("imprimir-etiquetas");
-        stmt.run("visor-de-precios");
+        // stmt.run("visor-de-precios");
+        stmt.run("cambiar-listado-precios");
         stmt.finalize();
 
         // db.run("CREATE TABLE users (name TEXT, password TEXT, role TEXT, lastlogin DATE)")
@@ -21,7 +22,7 @@ function task (){
         // db.run("CREATE table user_permissions (permision INT, user INT)")
         const perms = db.prepare("INSERT INTO user_permissions VALUES (?, ?)")
         // perms.run(1,1)
-        perms.run(2,1)
+        perms.run(3,1)
         perms.finalize()
         //     // db.each("select rowid from users", (err, user)=>{
         //     //     console.log("user", user)
