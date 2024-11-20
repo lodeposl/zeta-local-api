@@ -316,6 +316,7 @@ export const FACT_AND_COUNT = function(props){
         select top 200
             DocNum, 
             opch.DocEntry,
+            opch.DocDate,
             CardName, 
             NumAtCard,
 			(max(pch1.BaseLine) + 1) as amountProducts
@@ -333,6 +334,7 @@ export const FACT_AND_COUNT = function(props){
         group by 
             DocNum, 
             opch.DocEntry,
+            opch.DocDate,
             NumAtCard,
             CardName
         order by DocNum desc`
