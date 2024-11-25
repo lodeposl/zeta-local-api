@@ -4,9 +4,8 @@ import fs from "fs"
 import { jsPDF } from "jspdf";
 // import { SAP_DB as sql} from "../../utils/mssql.js"
 import { SAP_DB as sql } from "../utils/mssql.js";
-import {  PRODUCTS_BY_MARCA } from "../modules/products/queries.js";
 
-export const FIRM_AND_COUNT = function(location,includeNoActive=false, includeNoPrice=false,  includeNoStock = false, priceList=2){
+const FIRM_AND_COUNT = function(location,includeNoActive=false, includeNoPrice=false,  includeNoStock = false, priceList=2){
 
     const query = `
     select 
@@ -23,15 +22,50 @@ export const FIRM_AND_COUNT = function(location,includeNoActive=false, includeNo
         PriceList=${priceList}
         and OITM.SellItem='Y'
         ${ location=='TODOS'? '': `and OITM.U_CBM='${location}'`}
-        ${ includeNoActive ? '' : "and OITM.frozenFor = 'N'"}
+
         ${ includeNoStock ? '' :  `and OITM.OnHand > 0`}
         ${ includeNoPrice ? '' :  `and ITM1.Price > 0`}
-        ${ false ? '' :  `and omrc.FirmCode in ( '378', '199', '377', '601')`}
+        ${ true ? '' :  `and omrc.FirmCode in ( '199', '377', '601')`}
         
     group by
         OMRC.FirmCode,
         OMRC.FirmName 
     order by amountProducts desc`
+    return query
+}
+
+const PRODUCTS_BY_MARCA = function(FirmCode, location, includeNoActive=false, includeNoPrice=false,  includeNoStock = false, priceList=2){
+    FirmCode = FirmCode.replace(/[\[\]\(\)\;\+\:]/g, "")
+    FirmCode = FirmCode.replace("'","''");
+    includeNoStock = includeNoStock ? true : false
+    const query = `
+    select 
+        OITM.ItemCode,
+        ItemName,
+        onHand,
+        U_NIV_I,
+        Price,
+        OMRC.FirmName,
+        OMRC.FirmCode,
+        OITM.ItmsGrpCod,
+        OITM.TaxCodeAR
+    from 
+        OITM 
+    join 
+        ITM1 
+            on OITM.ItemCode = ITM1.ItemCode 
+    join
+        OMRC
+            on OITM.FirmCode = OMRC.FirmCode
+    where 
+        PriceList=${priceList}
+        and OITM.SellItem='Y'
+        and OITM.FirmCode='${FirmCode}'
+        ${ location=='TODOS'? '': `and OITM.U_CBM='${location}'`}
+        ${ includeNoStock ? '' : 'and OITM.OnHand > 0'}
+        ${ includeNoPrice ? '' : 'and ITM1.Price > 0'}
+    order by OITM.ItemName asc
+        `
     return query
 }
 
@@ -56,93 +90,105 @@ async function generatePDF (){
     const pageHeight= doc.internal.pageSize.height;
     // Default export is a4 paper, portrait, using millimeters for units
     try{
+        const location = "DEPOSITO"
 
-        const result = await sql.query(FIRM_AND_COUNT('TODOS'))
+        const result = await sql.query(FIRM_AND_COUNT(location))
         const marcas = result.recordset
         const productos = {}
         let y = 0.4
         let n
         let h = 0.4
         let right = false
-        let space= 10.25
+        let page = 1
+        let space= 10.65
         doc.setLineWidth(0.01)
         doc.table(0,0,[],[],{padding: 0.08,})
         doc.setFontSize(FS)
         let marcaIndex = 1
         for (const marca of marcas){
             n=1
-            const result = await sql.query(PRODUCTS_BY_MARCA(""+marca.FirmCode,'TODOS'))
+            const result = await sql.query(PRODUCTS_BY_MARCA(""+marca.FirmCode,location))
             
             //datos marca
             doc.setFont("Helvetica", "bold")
-            doc.cell(0.25,     y, 10.25, h, "Marca: "+marca.FirmName)
-            doc.cell(10.5,  y, 10.25, h, "Cantidad de Productos: "+marca.amountProducts)
+            doc.cell(0.05+ space*right, y, 6.25, h, "Marca: "+marca.FirmName)
+            doc.cell(6.3+ space*right,  y, 4, h, "Cantidad de Productos: "+marca.amountProducts)
 
             y+=h
             //Cabeceras
-            doc.cell(0.25  + space*false, y, 1.5, h, "Codigo")
-            doc.cell(1.75  + space*false, y, 1, h, "Inv.")
-            doc.cell(2.75  + space*false, y, 6,   h, "Descripción")
-            doc.cell(8.75  + space*false, y, 1.75, h, "Foto")
-            //right side
-            doc.cell(0.25  + space*true,  y, 1.5, h, "Codigo")
-            doc.cell(1.75  + space*true,  y, 1, h, "Inv.")
-            doc.cell(2.75  + space*true,  y, 6,   h, "Descripción")
-            doc.cell(8.75  + space*true,  y, 1.75, h, "Foto")
+            doc.cell(0.05  + space*right, y, 1.5, h, "Codigo")
+            doc.cell(1.55  + space*right, y, 6,   h, "Descripción")
+            doc.cell(7.55  + space*right, y, 1, h, "Inv.")
+            doc.cell(8.55  + space*right, y, 1.75, h, "Foto")
+
             y+=h
             doc.setFont("Helvetica", "")
 
 
             for (const product of result.recordset){
-                if (y >= 29){
-                    doc.addPage();
+                if (y > 28.5){
+                    if(right){
+                        doc.setFont("Helvetica", "bold")
+                        doc.text("Productos de: "+location,15,29.5)
+                        doc.text("Página: "+page,19,29.5)
+                        doc.setFont("Helvetica", "")
+                        doc.addPage();
+                        page+=1
+                    }
+                    y=h
+                                    
                     doc.setFont("Helvetica", "bold")
 
-                    right= false //restart side
-                    y = h // Restart height position
-                    doc.cell(0.25  + space*false, y, 1.5, h, "Codigo")
-                    doc.cell(1.75  + space*false, y, 1, h, "Inv.")
-                    doc.cell(2.75  + space*false, y, 6,   h, "Descripción")
-                    doc.cell(8.75  + space*false, y, 1.75, h, "Foto")
-                    //right side
-                    doc.cell(0.25  + space*true,  y, 1.5, h, "Codigo")
-                    doc.cell(1.75  + space*true,  y, 1, h, "Inv.")
-                    doc.cell(2.75  + space*true,  y, 6,   h, "Descripción")
-                    doc.cell(8.75  + space*true,  y, 1.75, h, "Foto")
+                   right = !right
+                    doc.cell(0.05  + space*right, y, 1.5, h, "Codigo")
+                    doc.cell(1.55  + space*right, y, 6,   h, "Descripción")
+                    doc.cell(7.55  + space*right, y, 1, h, "Inv.")
+                    doc.cell(8.55  + space*right, y, 1.75, h, "Foto")
                     y+=h
                     doc.setFont("Helvetica", "")
 
                 }
 
-                doc.cell(0.25 +space*right,  y, 1.5, h, product.ItemCode)
-                doc.cell(1.75 +space*right,  y, 1,    h, ""+product.onHand)
+                doc.cell(0.05 +space*right,  y, 1.5, h, product.ItemCode)
                 const splitText = doc.splitTextToSize(product.ItemName, 5.5)[0]
-                doc.cell(2.75 +space*right,  y, 6,   h, splitText)
-                doc.cell(8.75 +space*right,  y, 1.75, h, ".")
+                doc.cell(1.55 +space*right,  y, 6,   h, splitText)
+                doc.cell(7.55 +space*right,  y, 1,    h, ""+product.onHand)
 
-                if(right){
+                doc.cell(8.55 +space*right,  y, 1.75, h, ".")
+
+ 
                     y+=h
-                }
-                right = !right
+                
                 n+=1
             }
             marcaIndex+=1
             if(marcaIndex<=marcas.length){
-                right = false
                 y+=h
-                if(y>24){
-                    doc.addPage();
+                if(y>28.5){
+                    if(right){
+                        doc.setFont("Helvetica", "bold")
+                        doc.text("Productos de: "+location,15,29.5)
+                        doc.text("Página: "+page,19,29.5)
+                        doc.setFont("Helvetica", "")
+
+                        doc.addPage();
+                        page+=1
+
+                    }
+                    right=!right
                     y = h // Restart height position
 
-                }else{
-                    y+=h
                 }
             }
 
             console.log("marca", marca, result.recordset.length)
         }
+        doc.setFont("Helvetica", "bold")
+        doc.text("Productos de: "+location,15,29.5)
+        doc.text("Página: "+page,19,29.5)
+        doc.setFont("Helvetica", "")
 
-            doc.save("./docs/ayo lol.pdf")
+            doc.save("./docs/pdf-fotos-"+location+".pdf")
             console.log("Saved")
         // let size = doc.getTextWidth(marcaText)
         // let inLines = doc.splitTextToSize(marcaText, 3.3)
