@@ -367,7 +367,7 @@ export const PRODUCTS_BY_FACTURA = function(DocEntry, priceList=2){
         PriceList=${priceList}
         and pch1.DocEntry='${DocEntry}'
 
-    order by OITM.ItemCode asc
+    order by pch1.BaseLine asc
         `
         return query
 }
