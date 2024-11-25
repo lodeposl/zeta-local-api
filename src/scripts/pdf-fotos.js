@@ -26,7 +26,7 @@ export const FIRM_AND_COUNT = function(location,includeNoActive=false, includeNo
         ${ includeNoActive ? '' : "and OITM.frozenFor = 'N'"}
         ${ includeNoStock ? '' :  `and OITM.OnHand > 0`}
         ${ includeNoPrice ? '' :  `and ITM1.Price > 0`}
-        ${ false ? '' :  `and omrc.FirmCode in ('489', '199', '377', '601')`}
+        ${ false ? '' :  `and omrc.FirmCode in ( '378', '199', '377', '601')`}
         
     group by
         OMRC.FirmCode,
@@ -60,11 +60,13 @@ async function generatePDF (){
         const result = await sql.query(FIRM_AND_COUNT('TODOS'))
         const marcas = result.recordset
         const productos = {}
-        let y = 0.5
+        let y = 0.4
         let n
-        let h = 0.5
+        let h = 0.4
+        let right = false
+        let space= 10.25
         doc.setLineWidth(0.01)
-        doc.table(0,0,[],[],{padding: 0.15,})
+        doc.table(0,0,[],[],{padding: 0.08,})
         doc.setFontSize(FS)
         let marcaIndex = 1
         for (const marca of marcas){
@@ -73,16 +75,20 @@ async function generatePDF (){
             
             //datos marca
             doc.setFont("Helvetica", "bold")
-            doc.cell(1,     y, 9.5, h, "Marca: "+marca.FirmName)
-            doc.cell(10.5,  y, 9.5, h, "Cantidad de Productos: "+marca.amountProducts)
+            doc.cell(0.25,     y, 10.25, h, "Marca: "+marca.FirmName)
+            doc.cell(10.5,  y, 10.25, h, "Cantidad de Productos: "+marca.amountProducts)
 
             y+=h
             //Cabeceras
-            doc.cell(1,     y, 0.75,    h, "#")
-            doc.cell(1.75,  y, 1.5, h, "Codigo")
-            doc.cell(3.25,  y, 1, h, "Inv.")
-            doc.cell(4.25,  y, 13,   h, "Descripción")
-            doc.cell(17.25, y, 2.75, h, "Foto")
+            doc.cell(0.25  + space*false, y, 1.5, h, "Codigo")
+            doc.cell(1.75  + space*false, y, 1, h, "Inv.")
+            doc.cell(2.75  + space*false, y, 6,   h, "Descripción")
+            doc.cell(8.75  + space*false, y, 1.75, h, "Foto")
+            //right side
+            doc.cell(0.25  + space*true,  y, 1.5, h, "Codigo")
+            doc.cell(1.75  + space*true,  y, 1, h, "Inv.")
+            doc.cell(2.75  + space*true,  y, 6,   h, "Descripción")
+            doc.cell(8.75  + space*true,  y, 1.75, h, "Foto")
             y+=h
             doc.setFont("Helvetica", "")
 
@@ -92,29 +98,41 @@ async function generatePDF (){
                     doc.addPage();
                     doc.setFont("Helvetica", "bold")
 
-                    y = 1 // Restart height position
-                    doc.cell(1,     y, 0.75,    h, "#")
-                    doc.cell(1.75,  y, 1.5, h, "Codigo")
-                    doc.cell(3.25,  y, 1,    h, "Inv.")
-                    doc.cell(4.25,  y, 13,   h, "Descripción")
-                    doc.cell(17.25, y, 2.75, h, "Foto")
+                    right= false //restart side
+                    y = h // Restart height position
+                    doc.cell(0.25  + space*false, y, 1.5, h, "Codigo")
+                    doc.cell(1.75  + space*false, y, 1, h, "Inv.")
+                    doc.cell(2.75  + space*false, y, 6,   h, "Descripción")
+                    doc.cell(8.75  + space*false, y, 1.75, h, "Foto")
+                    //right side
+                    doc.cell(0.25  + space*true,  y, 1.5, h, "Codigo")
+                    doc.cell(1.75  + space*true,  y, 1, h, "Inv.")
+                    doc.cell(2.75  + space*true,  y, 6,   h, "Descripción")
+                    doc.cell(8.75  + space*true,  y, 1.75, h, "Foto")
                     y+=h
                     doc.setFont("Helvetica", "")
 
                 }
-                doc.cell(1,     y, 0.75,    h, ""+n)
-                doc.cell(1.75,     y, 1.5, h, product.ItemCode)
-                doc.cell(3.25,  y, 1,    h, ""+product.onHand)
-                doc.cell(4.25,  y, 13,   h, product.ItemName)
-                doc.cell(17.25, y, 2.75, h, ".")
-                y+=h
+
+                doc.cell(0.25 +space*right,  y, 1.5, h, product.ItemCode)
+                doc.cell(1.75 +space*right,  y, 1,    h, ""+product.onHand)
+                const splitText = doc.splitTextToSize(product.ItemName, 5.5)[0]
+                doc.cell(2.75 +space*right,  y, 6,   h, splitText)
+                doc.cell(8.75 +space*right,  y, 1.75, h, ".")
+
+                if(right){
+                    y+=h
+                }
+                right = !right
                 n+=1
             }
             marcaIndex+=1
             if(marcaIndex<=marcas.length){
+                right = false
+                y+=h
                 if(y>24){
                     doc.addPage();
-                    y = 0.5 // Restart height position
+                    y = h // Restart height position
 
                 }else{
                     y+=h
