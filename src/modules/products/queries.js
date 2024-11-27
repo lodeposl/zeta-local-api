@@ -78,7 +78,7 @@ export const PRODUCTS_BY_CODES = function(ItemCodes, location, includeNoActive=f
 
 
 export const FIRM_AND_COUNT = function(location,includeNoActive=false, includeNoPrice=false,  includeNoStock = false, priceList=2){
-
+    priceList = priceList? priceList : 2
     const query = `
     select
         OMRC.FirmCode,
@@ -101,6 +101,7 @@ export const FIRM_AND_COUNT = function(location,includeNoActive=false, includeNo
         OMRC.FirmCode,
         OMRC.FirmName 
     order by FirmName asc`
+    console.log("query", query)
     return query
 }
 
