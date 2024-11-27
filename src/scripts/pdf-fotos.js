@@ -4,7 +4,6 @@ import fs from "fs"
 import { jsPDF } from "jspdf";
 // import { SAP_DB as sql} from "../../utils/mssql.js"
 import { SAP_DB as sql } from "../utils/mssql.js";
-
 const FIRM_AND_COUNT = function(location,includeNoActive=false, includeNoPrice=false,  includeNoStock = false, priceList=2){
 
     const query = `
@@ -74,6 +73,7 @@ function task (){
     setTimeout(generatePDF, 2000)
 }
 async function generatePDF (){
+    let csv = "Marca;;#;;Codigo;;Reff;;Descripcion;;Inv;;Foto\n"
     
     let e
     let product = "lol"
@@ -90,7 +90,7 @@ async function generatePDF (){
     const pageHeight= doc.internal.pageSize.height;
     // Default export is a4 paper, portrait, using millimeters for units
     try{
-        const location = "DEPOSITO"
+        const location = "PATIO"
 
         const result = await sql.query(FIRM_AND_COUNT(location))
         const marcas = result.recordset
@@ -116,16 +116,17 @@ async function generatePDF (){
 
             y+=h
             //Cabeceras
-            doc.cell(0.05  + space*right, y, 1.5, h, "Codigo")
-            doc.cell(1.55  + space*right, y, 6,   h, "Descripción")
-            doc.cell(7.55  + space*right, y, 1, h, "Inv.")
-            doc.cell(8.55  + space*right, y, 1.75, h, "Foto")
+            doc.cell(0.05  + space*right, y, 1.25, h, "Codigo")
+            doc.cell(1.3  + space*right, y, 2, h, "Ref")
+            doc.cell(3.3  + space*right, y, 6,   h, "Descripción")
+            doc.cell(9.3  + space*right, y, 1, h, "Inv.")
 
             y+=h
             doc.setFont("Helvetica", "")
 
 
             for (const product of result.recordset){
+                csv += `${marca.FirmName};;${n};;${product.ItemCode};;${product.U_NIV_I};;${product.ItemName};;${product.onHand};;\n`
                 if (y > 28.5){
                     if(right){
                         doc.setFont("Helvetica", "bold")
@@ -140,21 +141,21 @@ async function generatePDF (){
                     doc.setFont("Helvetica", "bold")
 
                    right = !right
-                    doc.cell(0.05  + space*right, y, 1.5, h, "Codigo")
-                    doc.cell(1.55  + space*right, y, 6,   h, "Descripción")
-                    doc.cell(7.55  + space*right, y, 1, h, "Inv.")
-                    doc.cell(8.55  + space*right, y, 1.75, h, "Foto")
+                    doc.cell(0.05  + space*right, y, 1.25, h, "Codigo")
+                    doc.cell(1.3  + space*right, y, 2, h, "Ref")
+                    doc.cell(3.3  + space*right, y, 6,   h, "Descripción")
+                    doc.cell(9.3  + space*right, y, 1, h, "Inv.")
                     y+=h
                     doc.setFont("Helvetica", "")
 
                 }
 
-                doc.cell(0.05 +space*right,  y, 1.5, h, product.ItemCode)
+                doc.cell(0.05 +space*right,  y, 1.25, h, product.ItemCode)
+                doc.cell(1.3 +space*right,  y, 2, h, product.U_NIV_I?product.U_NIV_I:'.')
                 const splitText = doc.splitTextToSize(product.ItemName, 5.5)[0]
-                doc.cell(1.55 +space*right,  y, 6,   h, splitText)
-                doc.cell(7.55 +space*right,  y, 1,    h, ""+product.onHand)
+                doc.cell(3.3 +space*right,  y, 6,   h, splitText)
+                doc.cell(9.3 +space*right,  y, 1,    h, ""+product.onHand)
 
-                doc.cell(8.55 +space*right,  y, 1.75, h, ".")
 
  
                     y+=h
@@ -189,6 +190,7 @@ async function generatePDF (){
         doc.setFont("Helvetica", "")
 
             doc.save("./docs/pdf-fotos-"+location+".pdf")
+            fs.writeFileSync("./docs/csv-fotos-"+location+".csv", csv)
             console.log("Saved")
         // let size = doc.getTextWidth(marcaText)
         // let inLines = doc.splitTextToSize(marcaText, 3.3)
