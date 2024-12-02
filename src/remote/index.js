@@ -1,13 +1,13 @@
 import cron from "cron"
 
-// import pushProducts from "./pushProducts.js"
-// import pushBrands from "./pushBrands.js"
-// import pushGroups from "./pushGroups.js"
+import pushProducts from "./pushProducts.js"
+import pushBrands from "./pushBrands.js"
+import pushGroups from "./pushGroups.js"
 import pushImages from "./pushImages.js"
 let jobs = [
-    // pushProducts,
-    // pushBrands,
-    // pushGroups,
+    pushProducts,
+    pushBrands,
+    pushGroups,
     pushImages
 ]  
 
@@ -18,7 +18,7 @@ const initJobs = async () => {
             await job.time(),
             job.task,
             null,
-            false,
+            true,
             undefined,
             undefined,
             true ,// config.isActive ? true : false
