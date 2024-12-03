@@ -101,7 +101,6 @@ export const FIRM_AND_COUNT = function(location,includeNoActive=false, includeNo
         OMRC.FirmCode,
         OMRC.FirmName 
     order by FirmName asc`
-    console.log("query", query)
     return query
 }
 

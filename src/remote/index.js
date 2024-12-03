@@ -1,14 +1,14 @@
 import cron from "cron"
 
-import pushProducts from "./pushProducts.js"
-import pushBrands from "./pushBrands.js"
-import pushGroups from "./pushGroups.js"
-import pushImages from "./pushImages.js"
+// import pushProducts from "./pushProducts.js"
+// import pushBrands from "./pushBrands.js"
+// import pushGroups from "./pushGroups.js"
+// import pushImages from "./pushImages.js"
 let jobs = [
-    pushProducts,
-    pushBrands,
-    pushGroups,
-    pushImages
+    // pushProducts,
+    // pushBrands,
+    // pushGroups,
+    // pushImages
 ]  
 
 let running = {}
