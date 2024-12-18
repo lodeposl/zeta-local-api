@@ -22,7 +22,6 @@ facturasData = generateFacturas(50)
 const controller = {
     facturas:async (body,params)=>{
         let error
-        console.log("lol", facturasData)
         try{
         }catch(err){
             error = err
@@ -43,7 +42,6 @@ const controller = {
         }catch(err){
             error = err
         }
-        console.log("facturasData", facturasData)
         return {
             processed:true,
             error

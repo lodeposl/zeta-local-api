@@ -34,7 +34,6 @@ function wordsForWords(words, split){
     }
     return splitInWords
 }
-
 async function JSPDF (body, params){
     let e
     let product = "lol"
@@ -212,6 +211,7 @@ async function JSPDF (body, params){
 
     await new Promise((resolve, reject)=>{
         ptp.print("./docs/"+pdfName+".pdf", {
+            printer:"Etiquetas",
             orientation:"landscape",
             scale:"shrink",
             
@@ -265,7 +265,6 @@ const controller = {
         try{
             const location = body.props.location? body.props.location: "TODOS"
             const result = await sql.query(FIRM_AND_COUNT(location, body.props.includeNoActive, body.props.includeNoPrice, body.props.includeNoStock, body.props.priceList.value))
-            
             marcas = result.recordset
         }catch(err){
             error = err
@@ -376,44 +375,12 @@ const controller = {
                     throw "cant-change-list"
                 }
             }
-            const client = await createClient({
-                url: process.env.REDIS_URL
-              })
-            .on('error', err => console.log('Redis Client Error',  err))
-            .connect();
-            const response = await createClient({
-                url: process.env.REDIS_URL
-              })
-            .on('error', err => console.log('Redis Client Error',  err))
-            .connect();
-            const promise = new Promise((resolve,reject)=>{
-                response.subscribe("testResponse", (message, channel)=>{
-                    const obj = JSON.parse(message)
-                    resolve(obj)
-                })
-            })
-            await client.publish("test",JSON.stringify({
-                     products:body.products,
-                     props:body.props
-                }))
-            
-            const result = await promise
-            await client.disconnect();
-            await response.disconnect();
+            const result = await JSPDF(body, params)
             if (result.error){
                 e = result.error
             }
             x = result.res
 
-            // const api = axios.create( {baseURL: "http://192.168.0.110:4000"})
-            // const r = await api.post("products/jspdf", {
-            //     products:body.products,
-            //     props:body.props
-            // })
-            // x = r.data
-            // if (x.error){
-            //     e = x.error
-            // }
         }catch(error){
             console.log("error", error)
             e = error.message ? error.message: error
@@ -423,7 +390,7 @@ const controller = {
             error:e
         }
     },
-    JSPDF: JSPDF,
+
     queryProveedores:async(body, params)=>{
         let error
         let proveedores = []

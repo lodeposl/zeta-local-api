@@ -8,15 +8,10 @@ import userRouter from "./modules/user/router.js"
 import productsRouter from "./modules/products/router.js"
 import ticketsRouter from "./modules/tickets/router.js"
 import { initJobs } from "./remote/index.js"
-import { initRedis } from "./redis.js"
+
 
 async function init (){
     // await initMongo()
-
-    console.log("print", process.env.DO_PRINTING)
-    if (process.env.DO_PRINTING=="true"){
-        await initRedis()
-    }
 
     const app = express()
     app.use(cors())
