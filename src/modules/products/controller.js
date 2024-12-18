@@ -9,7 +9,6 @@ import axios from "axios"
 import { MARCAS, PRODUCT_BY_CODE, FIRM_AND_COUNT, PRODUCTS_BY_MARCA, PRODUCTS_BY_SEARCH, PRODUCTS_BY_CODES, PRICE_LISTS, PROVIDER_AND_COUNT, PRODUCTS_BY_PROVEEDOR, FACT_AND_COUNT, PRODUCTS_BY_FACTURA } from "./queries.js"
 import PDFMerger from "pdf-merger-js";
 import { jsPDF } from "jspdf";
-import { createClient } from 'redis';
 
 import { getUser } from "../user/controller.js";
 
